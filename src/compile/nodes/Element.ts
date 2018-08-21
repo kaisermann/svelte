@@ -978,7 +978,8 @@ export default class Element extends Node {
 					// a boolean attribute with one non-Text chunk
 					openingTag += '${' + attribute.chunks[0].snippet + ' ? " ' + attribute.name + '" : "" }';
 				} else {
-					openingTag += ` ${attribute.name}="${attribute.stringifyForSsr()}"`;
+					const condition = `(${attribute.chunks.map(({snippet}) => `${snippet}`).join(') || (')})`;
+					openingTag += ` \${${condition} ? '${attribute.name}="' + ${attribute.stringifyForSsr()} + '"' : ''}`
 				}
 			});
 		}
