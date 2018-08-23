@@ -964,6 +964,7 @@ export default class Element extends Node {
 			openingTag += "${@spread([" + args.join(', ') + "])}";
 		} else {
 			this.attributes.forEach((attribute: Node) => {
+				console.log(attribute.chunks)
 				if (attribute.type !== 'Attribute') return;
 
 				if (attribute.name === 'value' && this.name === 'textarea') {
@@ -976,10 +977,17 @@ export default class Element extends Node {
 					attribute.chunks[0].type !== 'Text'
 				) {
 					// a boolean attribute with one non-Text chunk
-					openingTag += '${' + attribute.chunks[0].snippet + ' ? " ' + attribute.name + '" : "" }';
+					openingTag += `\${${attribute.chunks[0].snippet} ? ' ${attribute.name}' : '' }`;
 				} else {
-					const condition = `(${attribute.chunks.map(({snippet}) => `${snippet}`).join(') || (')})`;
-					openingTag += ` \${${condition} ? '${attribute.name}="' + ${attribute.stringifyForSsr()} + '"' : ''}`
+					console.log(attribute.chunks)
+					if(!attribute.chunks.length) {
+						openingTag += ` ${attribute.name}="${attribute.stringifyForSsr()}"`;
+					} else {
+						const condition = attribute.chunks.map(({ snippet }) => snippet).join(' || ');
+						console.log(condition);
+						// `<div ${cond ? `foo="ssr"` : `` }/>`
+						openingTag += ` \` + ${condition} ? ('${attribute.name}="' + \`${attribute.stringifyForSsr()}\` + '"') : '' \``;
+					}
 				}
 			});
 		}

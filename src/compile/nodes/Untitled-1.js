@@ -1,1 +1,0 @@
-${ctx.foo != null ? " `foo`=`${escape$(ctx.foo)}` : "" }

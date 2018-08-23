@@ -5,5 +5,5 @@ export default {
 		baz: null,
 	},
 
-	html: `<div></div>`,
+	html: `<div style="opacity: 1;"></div>`,
 };
