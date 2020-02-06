@@ -18,18 +18,31 @@ describe('parse', () => {
 		const skip = !fs.existsSync(`${__dirname}/samples/${dir}/input.svelte`);
 
 		(skip ? it.skip : solo ? it.only : it)(dir, () => {
-			const options = tryToLoadJson(`${__dirname}/samples/${dir}/options.json`) || {};
+			const options =
+				tryToLoadJson(`${__dirname}/samples/${dir}/options.json`) || {};
 
-			const input = fs.readFileSync(`${__dirname}/samples/${dir}/input.svelte`, 'utf-8').replace(/\s+$/, '');
-			const expectedOutput = tryToLoadJson(`${__dirname}/samples/${dir}/output.json`);
-			const expectedError = tryToLoadJson(`${__dirname}/samples/${dir}/error.json`);
+			const input = fs
+				.readFileSync(`${__dirname}/samples/${dir}/input.svelte`, 'utf-8')
+				.replace(/\s+$/, '');
+			const expectedOutput = tryToLoadJson(
+				`${__dirname}/samples/${dir}/output.json`
+			);
+			const expectedError = tryToLoadJson(
+				`${__dirname}/samples/${dir}/error.json`
+			);
 
 			try {
-				const { ast } = svelte.compile(input, Object.assign(options, {
-					generate: false
-				}));
+				const { ast } = svelte.compile(
+					input,
+					Object.assign(options, {
+						generate: false,
+					})
+				);
 
-				fs.writeFileSync(`${__dirname}/samples/${dir}/_actual.json`, JSON.stringify(ast, null, '\t'));
+				fs.writeFileSync(
+					`${__dirname}/samples/${dir}/_actual.json`,
+					JSON.stringify(ast, null, '\t')
+				);
 
 				assert.deepEqual(ast.html, expectedOutput.html);
 				assert.deepEqual(ast.css, expectedOutput.css);
@@ -44,7 +57,10 @@ describe('parse', () => {
 					assert.equal(err.message, expectedError.message);
 					assert.deepEqual(err.start, expectedError.start);
 					assert.equal(err.pos, expectedError.pos);
-					assert.equal(err.toString().split('\n')[0], `${expectedError.message} (${expectedError.start.line}:${expectedError.start.column})`);
+					assert.equal(
+						err.toString().split('\n')[0],
+						`${expectedError.message} (${expectedError.start.line}:${expectedError.start.column})`
+					);
 				} catch (err2) {
 					const e = err2.code === 'MODULE_NOT_FOUND' ? err : err2;
 					throw e;

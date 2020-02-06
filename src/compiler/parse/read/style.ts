@@ -4,7 +4,11 @@ import { Parser } from '../index';
 import { Node } from 'estree';
 import { Style } from '../../interfaces';
 
-export default function read_style(parser: Parser, start: number, attributes: Node[]): Style {
+export default function read_style(
+	parser: Parser,
+	start: number,
+	attributes: Node[]
+): Style {
 	const content_start = parser.index;
 	const styles = parser.read_until(/<\/style>/);
 	const content_end = parser.index;
@@ -18,10 +22,13 @@ export default function read_style(parser: Parser, start: number, attributes: No
 		});
 	} catch (err) {
 		if (err.name === 'CssSyntaxError') {
-			parser.error({
-				code: `css-syntax-error`,
-				message: err.message
-			}, err.offset);
+			parser.error(
+				{
+					code: `css-syntax-error`,
+					message: err.message,
+				},
+				err.offset
+			);
 		} else {
 			throw err;
 		}
@@ -31,7 +38,8 @@ export default function read_style(parser: Parser, start: number, attributes: No
 
 	// tidy up AST
 	walk(ast, {
-		enter: (node: any) => { // `any` because this isn't an ESTree node
+		enter: (node: any) => {
+			// `any` because this isn't an ESTree node
 			// replace `ref:a` nodes
 			if (node.type === 'Selector') {
 				for (let i = 0; i < node.children.length; i += 1) {
@@ -39,19 +47,29 @@ export default function read_style(parser: Parser, start: number, attributes: No
 					const b = node.children[i + 1];
 
 					if (is_ref_selector(a, b)) {
-						parser.error({
-							code: `invalid-ref-selector`,
-							message: 'ref selectors are no longer supported'
-						}, a.loc.start.offset);
+						parser.error(
+							{
+								code: `invalid-ref-selector`,
+								message: 'ref selectors are no longer supported',
+							},
+							a.loc.start.offset
+						);
 					}
 				}
 			}
 
-			if (node.type === 'Declaration' && node.value.type === 'Value' && node.value.children.length === 0) {
-				parser.error({
-					code: `invalid-declaration`,
-					message: `Declaration cannot be empty`
-				}, node.start);
+			if (
+				node.type === 'Declaration' &&
+				node.value.type === 'Value' &&
+				node.value.children.length === 0
+			) {
+				parser.error(
+					{
+						code: `invalid-declaration`,
+						message: `Declaration cannot be empty`,
+					},
+					node.start
+				);
 			}
 
 			if (node.loc) {
@@ -59,7 +77,7 @@ export default function read_style(parser: Parser, start: number, attributes: No
 				node.end = node.loc.end.offset;
 				delete node.loc;
 			}
-		}
+		},
 	});
 
 	parser.eat('</style>', true);
@@ -74,12 +92,13 @@ export default function read_style(parser: Parser, start: number, attributes: No
 		content: {
 			start: content_start,
 			end: content_end,
-			styles
-		}
+			styles,
+		},
 	};
 }
 
-function is_ref_selector(a: any, b: any) { // TODO add CSS node types
+function is_ref_selector(a: any, b: any) {
+	// TODO add CSS node types
 	if (!b) return false;
 
 	return (

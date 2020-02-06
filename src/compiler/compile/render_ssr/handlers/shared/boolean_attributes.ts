@@ -23,5 +23,5 @@ export const boolean_attributes = new Set([
 	'readonly',
 	'required',
 	'reversed',
-	'selected'
+	'selected',
 ]);

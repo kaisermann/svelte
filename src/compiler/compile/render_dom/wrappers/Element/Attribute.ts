@@ -24,14 +24,19 @@ export default class AttributeWrapper {
 			// special case — <option value={foo}> — see below
 			if (this.parent.node.name === 'option' && node.name === 'value') {
 				let select: ElementWrapper = this.parent;
-				while (select && (select.node.type !== 'Element' || select.node.name !== 'select'))
+				while (
+					select &&
+					(select.node.type !== 'Element' || select.node.name !== 'select')
+				)
 					// @ts-ignore todo: doublecheck this, but looks to be correct
 					select = select.parent;
 
 				if (select && select.select_binding_dependencies) {
 					select.select_binding_dependencies.forEach(prop => {
 						this.node.dependencies.forEach((dependency: string) => {
-							this.parent.renderer.component.indirect_dependencies.get(prop).add(dependency);
+							this.parent.renderer.component.indirect_dependencies
+								.get(prop)
+								.add(dependency);
 						});
 					});
 				}
@@ -49,9 +54,8 @@ export default class AttributeWrapper {
 			name === 'value' &&
 			(element.node.name === 'option' || // TODO check it's actually bound
 				(element.node.name === 'input' &&
-					element.node.bindings.find(
-						(binding) =>
-							/checked|group/.test(binding.name)
+					element.node.bindings.find(binding =>
+						/checked|group/.test(binding.name)
 					)));
 
 		const property_name = is_indirectly_bound_value
@@ -64,10 +68,13 @@ export default class AttributeWrapper {
 		const method = /-/.test(element.node.name)
 			? '@set_custom_element_data'
 			: name.slice(0, 6) === 'xlink:'
-				? '@xlink_attr'
-				: '@attr';
+			? '@xlink_attr'
+			: '@attr';
 
-		const is_legacy_input_type = element.renderer.component.compile_options.legacy && name === 'type' && this.parent.node.name === 'input';
+		const is_legacy_input_type =
+			element.renderer.component.compile_options.legacy &&
+			name === 'type' &&
+			this.parent.node.name === 'input';
 
 		const dependencies = this.node.get_dependencies();
 		const value = this.get_value(block);
@@ -78,11 +85,14 @@ export default class AttributeWrapper {
 
 		const is_input_value = name === 'value' && element.node.name === 'input';
 
-		const should_cache = is_src || this.node.should_cache() || is_select_value_attribute; // TODO is this necessary?
+		const should_cache =
+			is_src || this.node.should_cache() || is_select_value_attribute; // TODO is this necessary?
 
-		const last = should_cache && block.get_unique_name(
-			`${element.var.name}_${name.replace(/[^a-zA-Z_$]/g, '_')}_value`
-		);
+		const last =
+			should_cache &&
+			block.get_unique_name(
+				`${element.var.name}_${name.replace(/[^a-zA-Z_$]/g, '_')}_value`
+			);
 
 		if (should_cache) block.add_variable(last);
 
@@ -90,13 +100,15 @@ export default class AttributeWrapper {
 		const init = should_cache ? x`${last} = ${value}` : value;
 
 		if (is_legacy_input_type) {
-			block.chunks.hydrate.push(
-				b`@set_input_type(${element.var}, ${init});`
-			);
-			updater = b`@set_input_type(${element.var}, ${should_cache ? last : value});`;
+			block.chunks.hydrate.push(b`@set_input_type(${element.var}, ${init});`);
+			updater = b`@set_input_type(${element.var}, ${
+				should_cache ? last : value
+			});`;
 		} else if (is_select_value_attribute) {
 			// annoying special case
-			const is_multiple_select = element.node.get_static_attribute_value('multiple');
+			const is_multiple_select = element.node.get_static_attribute_value(
+				'multiple'
+			);
 			const i = block.get_unique_name('i');
 			const option = block.get_unique_name('option');
 
@@ -125,19 +137,23 @@ export default class AttributeWrapper {
 			block.chunks.hydrate.push(
 				b`if (${element.var}.src !== ${init}) ${method}(${element.var}, "${name}", ${last});`
 			);
-			updater = b`${method}(${element.var}, "${name}", ${should_cache ? last : value});`;
+			updater = b`${method}(${element.var}, "${name}", ${
+				should_cache ? last : value
+			});`;
 		} else if (property_name) {
-			block.chunks.hydrate.push(
-				b`${element.var}.${property_name} = ${init};`
-			);
+			block.chunks.hydrate.push(b`${element.var}.${property_name} = ${init};`);
 			updater = block.renderer.options.dev
-				? b`@prop_dev(${element.var}, "${property_name}", ${should_cache ? last : value});`
+				? b`@prop_dev(${element.var}, "${property_name}", ${
+						should_cache ? last : value
+				  });`
 				: b`${element.var}.${property_name} = ${should_cache ? last : value};`;
 		} else {
 			block.chunks.hydrate.push(
 				b`${method}(${element.var}, "${name}", ${init});`
 			);
-			updater = b`${method}(${element.var}, "${name}", ${should_cache ? last : value});`;
+			updater = b`${method}(${element.var}, "${name}", ${
+				should_cache ? last : value
+			});`;
 		}
 
 		if (dependencies.length > 0) {
@@ -152,8 +168,16 @@ export default class AttributeWrapper {
 			if (is_input_value) {
 				const type = element.node.get_static_attribute_value('type');
 
-				if (type === null || type === "" || type === "text" || type === "email" || type === "password") {
-					condition = x`${condition} && ${element.var}.${property_name} !== ${should_cache ? last : value}`;
+				if (
+					type === null ||
+					type === '' ||
+					type === 'text' ||
+					type === 'email' ||
+					type === 'password'
+				) {
+					condition = x`${condition} && ${element.var}.${property_name} !== ${
+						should_cache ? last : value
+					}`;
 				}
 			}
 
@@ -176,21 +200,30 @@ export default class AttributeWrapper {
 			const update_value = b`${element.var}.value = ${element.var}.__value;`;
 
 			block.chunks.hydrate.push(update_value);
-			if (this.node.get_dependencies().length > 0) block.chunks.update.push(update_value);
+			if (this.node.get_dependencies().length > 0)
+				block.chunks.update.push(update_value);
 		}
 	}
 
 	get_metadata() {
 		if (this.parent.node.namespace) return null;
 		const metadata = attribute_lookup[fix_attribute_casing(this.node.name)];
-		if (metadata && metadata.applies_to && !metadata.applies_to.includes(this.parent.node.name)) return null;
+		if (
+			metadata &&
+			metadata.applies_to &&
+			!metadata.applies_to.includes(this.parent.node.name)
+		)
+			return null;
 		return metadata;
 	}
 
 	get_value(block) {
 		if (this.node.is_true) {
 			const metadata = this.get_metadata();
-			if (metadata && boolean_attribute.has(metadata.property_name.toLowerCase())) {
+			if (
+				metadata &&
+				boolean_attribute.has(metadata.property_name.toLowerCase())
+			) {
 				return x`true`;
 			}
 			return x`""`;
@@ -205,9 +238,10 @@ export default class AttributeWrapper {
 				: (this.node.chunks[0] as Expression).manipulate(block);
 		}
 
-		let value = this.node.name === 'class'
-			? this.get_class_name_text(block)
-			: this.render_chunks(block).reduce((lhs, rhs) => x`${lhs} + ${rhs}`);
+		let value =
+			this.node.name === 'class'
+				? this.get_class_name_text(block)
+				: this.render_chunks(block).reduce((lhs, rhs) => x`${lhs} + ${rhs}`);
 
 		// '{foo} {bar}' — treat as string concatenation
 		if (this.node.chunks[0].type !== 'Text') {
@@ -230,7 +264,7 @@ export default class AttributeWrapper {
 	}
 
 	render_chunks(block: Block) {
-		return this.node.chunks.map((chunk) => {
+		return this.node.chunks.map(chunk => {
 			if (chunk.type === 'Text') {
 				return string_literal(chunk.data);
 			}
@@ -245,20 +279,27 @@ export default class AttributeWrapper {
 		const value = this.node.chunks;
 		if (value.length === 0) return `=""`;
 
-		return `="${value.map(chunk => {
-			return chunk.type === 'Text'
-				? chunk.data.replace(/"/g, '\\"')
-				: `\${${chunk.manipulate()}}`;
-		}).join('')}"`;
+		return `="${value
+			.map(chunk => {
+				return chunk.type === 'Text'
+					? chunk.data.replace(/"/g, '\\"')
+					: `\${${chunk.manipulate()}}`;
+			})
+			.join('')}"`;
 	}
 }
 
 // source: https://html.spec.whatwg.org/multipage/indices.html
 const attribute_lookup = {
 	allowfullscreen: { property_name: 'allowFullscreen', applies_to: ['iframe'] },
-	allowpaymentrequest: { property_name: 'allowPaymentRequest', applies_to: ['iframe'] },
+	allowpaymentrequest: {
+		property_name: 'allowPaymentRequest',
+		applies_to: ['iframe'],
+	},
 	async: { applies_to: ['script'] },
-	autofocus: { applies_to: ['button', 'input', 'keygen', 'select', 'textarea'] },
+	autofocus: {
+		applies_to: ['button', 'input', 'keygen', 'select', 'textarea'],
+	},
 	autoplay: { applies_to: ['audio', 'video'] },
 	checked: { applies_to: ['input'] },
 	controls: { applies_to: ['audio', 'video'] },
@@ -276,7 +317,10 @@ const attribute_lookup = {
 			'textarea',
 		],
 	},
-	formnovalidate: { property_name: 'formNoValidate', applies_to: ['button', 'input'] },
+	formnovalidate: {
+		property_name: 'formNoValidate',
+		applies_to: ['button', 'input'],
+	},
 	hidden: {},
 	indeterminate: { applies_to: ['input'] },
 	ismap: { property_name: 'isMap', applies_to: ['img'] },
@@ -337,5 +381,5 @@ const boolean_attribute = new Set([
 	'readonly',
 	'required',
 	'reversed',
-	'selected'
+	'selected',
 ]);

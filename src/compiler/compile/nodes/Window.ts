@@ -13,7 +13,7 @@ const valid_bindings = [
 	'outerHeight',
 	'scrollX',
 	'scrollY',
-	'online'
+	'online',
 ];
 
 export default class Window extends Node {
@@ -28,49 +28,48 @@ export default class Window extends Node {
 		info.attributes.forEach(node => {
 			if (node.type === 'EventHandler') {
 				this.handlers.push(new EventHandler(component, this, scope, node));
-			}
-
-			else if (node.type === 'Binding') {
+			} else if (node.type === 'Binding') {
 				if (node.expression.type !== 'Identifier') {
 					const { parts } = flatten_reference(node.expression);
 
 					// TODO is this constraint necessary?
 					component.error(node.expression, {
 						code: `invalid-binding`,
-						message: `Bindings on <svelte:window> must be to top-level properties, e.g. '${parts[parts.length - 1]}' rather than '${parts.join('.')}'`
+						message: `Bindings on <svelte:window> must be to top-level properties, e.g. '${
+							parts[parts.length - 1]
+						}' rather than '${parts.join('.')}'`,
 					});
 				}
 
 				if (!~valid_bindings.indexOf(node.name)) {
-					const match = (
-						node.name === 'width' ? 'innerWidth' :
-							node.name === 'height' ? 'innerHeight' :
-								fuzzymatch(node.name, valid_bindings)
-					);
+					const match =
+						node.name === 'width'
+							? 'innerWidth'
+							: node.name === 'height'
+							? 'innerHeight'
+							: fuzzymatch(node.name, valid_bindings);
 
 					const message = `'${node.name}' is not a valid binding on <svelte:window>`;
 
 					if (match) {
 						component.error(node, {
 							code: `invalid-binding`,
-							message: `${message} (did you mean '${match}'?)`
+							message: `${message} (did you mean '${match}'?)`,
 						});
 					} else {
 						component.error(node, {
 							code: `invalid-binding`,
-							message: `${message} — valid bindings are ${list(valid_bindings)}`
+							message: `${message} — valid bindings are ${list(
+								valid_bindings
+							)}`,
 						});
 					}
 				}
 
 				this.bindings.push(new Binding(component, this, scope, node));
-			}
-
-			else if (node.type === 'Action') {
+			} else if (node.type === 'Action') {
 				this.actions.push(new Action(component, this, scope, node));
-			}
-
-			else {
+			} else {
 				// TODO there shouldn't be anything else here...
 			}
 		});

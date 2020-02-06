@@ -14,7 +14,7 @@ export function is_promise<T = any>(value: any): value is PromiseLike<T> {
 
 export function add_location(element, file, line, column, char) {
 	element.__svelte_meta = {
-		loc: { file, line, column, char }
+		loc: { file, line, column, char },
 	};
 }
 
@@ -35,7 +35,9 @@ export function is_function(thing: any): thing is Function {
 }
 
 export function safe_not_equal(a, b) {
-	return a != a ? b == b : a !== b || ((a && typeof a === 'object') || typeof a === 'function');
+	return a != a
+		? b == b
+		: a !== b || (a && typeof a === 'object') || typeof a === 'function';
 }
 
 export function not_equal(a, b) {
@@ -58,7 +60,7 @@ export function subscribe(store, ...callbacks) {
 
 export function get_store_value(store) {
 	let value;
-	subscribe(store, _ => value = _)();
+	subscribe(store, _ => (value = _))();
 	return value;
 }
 
@@ -123,8 +125,11 @@ export function set_store_value(store, ret, value = ret) {
 	return ret;
 }
 
-export const has_prop = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop);
+export const has_prop = (obj, prop) =>
+	Object.prototype.hasOwnProperty.call(obj, prop);
 
 export function action_destroyer(action_result) {
-	return action_result && is_function(action_result.destroy) ? action_result.destroy : noop;
+	return action_result && is_function(action_result.destroy)
+		? action_result.destroy
+		: noop;
 }

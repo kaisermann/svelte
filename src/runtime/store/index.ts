@@ -1,4 +1,11 @@
-import { run_all, subscribe, noop, safe_not_equal, is_function, get_store_value } from 'svelte/internal';
+import {
+	run_all,
+	subscribe,
+	noop,
+	safe_not_equal,
+	is_function,
+	get_store_value,
+} from 'svelte/internal';
 
 /** Callback to inform of a value updates. */
 type Subscriber<T> = (value: T) => void;
@@ -50,7 +57,10 @@ const subscriber_queue = [];
  * @param value initial value
  * @param {StartStopNotifier}start start and stop notifications for subscriptions
  */
-export function readable<T>(value: T, start: StartStopNotifier<T>): Readable<T> {
+export function readable<T>(
+	value: T,
+	start: StartStopNotifier<T>
+): Readable<T> {
 	return {
 		subscribe: writable(value, start).subscribe,
 	};
@@ -61,14 +71,18 @@ export function readable<T>(value: T, start: StartStopNotifier<T>): Readable<T> 
  * @param {*=}value initial value
  * @param {StartStopNotifier=}start start and stop notifications for subscriptions
  */
-export function writable<T>(value: T, start: StartStopNotifier<T> = noop): Writable<T> {
+export function writable<T>(
+	value: T,
+	start: StartStopNotifier<T> = noop
+): Writable<T> {
 	let stop: Unsubscriber;
 	const subscribers: Array<SubscribeInvalidateTuple<T>> = [];
 
 	function set(new_value: T): void {
 		if (safe_not_equal(value, new_value)) {
 			value = new_value;
-			if (stop) { // store is ready
+			if (stop) {
+				// store is ready
 				const run_queue = !subscriber_queue.length;
 				for (let i = 0; i < subscribers.length; i += 1) {
 					const s = subscribers[i];
@@ -89,7 +103,10 @@ export function writable<T>(value: T, start: StartStopNotifier<T> = noop): Writa
 		set(fn(value));
 	}
 
-	function subscribe(run: Subscriber<T>, invalidate: Invalidator<T> = noop): Unsubscriber {
+	function subscribe(
+		run: Subscriber<T>,
+		invalidate: Invalidator<T> = noop
+	): Unsubscriber {
 		const subscriber: SubscribeInvalidateTuple<T> = [run, invalidate];
 		subscribers.push(subscriber);
 		if (subscribers.length === 1) {
@@ -116,8 +133,9 @@ export function writable<T>(value: T, start: StartStopNotifier<T> = noop): Writa
 type Stores = Readable<any> | [Readable<any>, ...Array<Readable<any>>];
 
 /** One or more values from `Readable` stores. */
-type StoresValues<T> = T extends Readable<infer U> ? U :
-	{ [K in keyof T]: T[K] extends Readable<infer U> ? U : never };
+type StoresValues<T> = T extends Readable<infer U>
+	? U
+	: { [K in keyof T]: T[K] extends Readable<infer U> ? U : never };
 
 /**
  * Derived value store by synchronizing one or more readable stores and
@@ -145,15 +163,19 @@ export function derived<S extends Stores, T>(
 	initial_value?: T
 ): Readable<T>;
 
-export function derived<T>(stores: Stores, fn: Function, initial_value?: T): Readable<T> {
+export function derived<T>(
+	stores: Stores,
+	fn: Function,
+	initial_value?: T
+): Readable<T> {
 	const single = !Array.isArray(stores);
 	const stores_array: Array<Readable<any>> = single
 		? [stores as Readable<any>]
-		: stores as Array<Readable<any>>;
+		: (stores as Array<Readable<any>>);
 
 	const auto = fn.length < 2;
 
-	return readable(initial_value, (set) => {
+	return readable(initial_value, set => {
 		let inited = false;
 		const values = [];
 
@@ -169,22 +191,24 @@ export function derived<T>(stores: Stores, fn: Function, initial_value?: T): Rea
 			if (auto) {
 				set(result as T);
 			} else {
-				cleanup = is_function(result) ? result as Unsubscriber : noop;
+				cleanup = is_function(result) ? (result as Unsubscriber) : noop;
 			}
 		};
 
-		const unsubscribers = stores_array.map((store, i) => subscribe(
-			store,
-			(value) => {
-				values[i] = value;
-				pending &= ~(1 << i);
-				if (inited) {
-					sync();
+		const unsubscribers = stores_array.map((store, i) =>
+			subscribe(
+				store,
+				value => {
+					values[i] = value;
+					pending &= ~(1 << i);
+					if (inited) {
+						sync();
+					}
+				},
+				() => {
+					pending |= 1 << i;
 				}
-			},
-			() => {
-				pending |= (1 << i);
-			}),
+			)
 		);
 
 		inited = true;

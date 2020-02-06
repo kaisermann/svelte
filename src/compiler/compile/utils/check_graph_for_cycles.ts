@@ -1,4 +1,6 @@
-export default function check_graph_for_cycles(edges: Array<[any, any]>): any[] {
+export default function check_graph_for_cycles(
+	edges: Array<[any, any]>
+): any[] {
 	const graph: Map<any, any[]> = edges.reduce((g, edge) => {
 		const [u, v] = edge;
 		if (!g.has(u)) g.set(u, []);
@@ -11,7 +13,7 @@ export default function check_graph_for_cycles(edges: Array<[any, any]>): any[] 
 	const on_stack = new Set();
 	const cycles = [];
 
-	function visit (v) {
+	function visit(v) {
 		visited.add(v);
 		on_stack.add(v);
 

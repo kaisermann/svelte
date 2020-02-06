@@ -11,14 +11,17 @@ export interface BlockOptions {
 	renderer?: Renderer;
 	comment?: string;
 	key?: Identifier;
-	bindings?: Map<string, {
-		object: Identifier;
-		property: Identifier;
-		snippet: Node;
-		store: string;
-		tail: Node;
-		modifier: (node: Node) => Node;
-	}>;
+	bindings?: Map<
+		string,
+		{
+			object: Identifier;
+			property: Identifier;
+			snippet: Node;
+			store: string;
+			tail: Node;
+			modifier: (node: Node) => Node;
+		}
+	>;
 	dependencies?: Set<string>;
 }
 
@@ -36,14 +39,17 @@ export default class Block {
 
 	dependencies: Set<string> = new Set();
 
-	bindings: Map<string, {
-		object: Identifier;
-		property: Identifier;
-		snippet: Node;
-		store: string;
-		tail: Node;
-		modifier: (node: Node) => Node;
-	}>;
+	bindings: Map<
+		string,
+		{
+			object: Identifier;
+			property: Identifier;
+			snippet: Node;
+			store: string;
+			tail: Node;
+			modifier: (node: Node) => Node;
+		}
+	>;
 
 	chunks: {
 		init: Array<Node | Node[]>;
@@ -176,15 +182,19 @@ export default class Block {
 		this.chunks.create.push(b`${id} = ${render_statement};`);
 
 		if (this.renderer.options.hydratable) {
-			this.chunks.claim.push(b`${id} = ${claim_statement || render_statement};`);
+			this.chunks.claim.push(
+				b`${id} = ${claim_statement || render_statement};`
+			);
 		}
 
 		if (parent_node) {
 			this.chunks.mount.push(b`@append(${parent_node}, ${id});`);
-			if (is_head(parent_node) && !no_detach) this.chunks.destroy.push(b`@detach(${id});`);
+			if (is_head(parent_node) && !no_detach)
+				this.chunks.destroy.push(b`@detach(${id});`);
 		} else {
 			this.chunks.mount.push(b`@insert(#target, ${id}, anchor);`);
-			if (!no_detach) this.chunks.destroy.push(b`if (detaching) @detach(${id});`);
+			if (!no_detach)
+				this.chunks.destroy.push(b`if (detaching) @detach(${id});`);
 		}
 	}
 
@@ -222,7 +232,9 @@ export default class Block {
 	}
 
 	child(options: BlockOptions) {
-		return new Block(Object.assign({}, this, { key: null }, options, { parent: this }));
+		return new Block(
+			Object.assign({}, this, { key: null }, options, { parent: this })
+		);
 	}
 
 	get_contents(key?: any) {
@@ -261,11 +273,9 @@ export default class Block {
 		if (this.chunks.create.length === 0 && this.chunks.hydrate.length === 0) {
 			properties.create = noop;
 		} else {
-			const hydrate = this.chunks.hydrate.length > 0 && (
-				this.renderer.options.hydratable
-					? b`this.h();`
-					: this.chunks.hydrate
-			);
+			const hydrate =
+				this.chunks.hydrate.length > 0 &&
+				(this.renderer.options.hydratable ? b`this.h();` : this.chunks.hydrate);
 
 			properties.create = x`function #create() {
 				${this.chunks.create}
@@ -279,7 +289,9 @@ export default class Block {
 			} else {
 				properties.claim = x`function #claim(#nodes) {
 					${this.chunks.claim}
-					${this.renderer.options.hydratable && this.chunks.hydrate.length > 0 && b`this.h();`}
+					${this.renderer.options.hydratable &&
+						this.chunks.hydrate.length > 0 &&
+						b`this.h();`}
 				}`;
 			}
 		}
@@ -304,7 +316,10 @@ export default class Block {
 			} else {
 				const ctx = this.maintain_context ? x`#new_ctx` : x`#ctx`;
 
-				let dirty: Identifier | ArrayPattern = { type: 'Identifier', name: '#dirty' };
+				let dirty: Identifier | ArrayPattern = {
+					type: 'Identifier',
+					name: '#dirty',
+				};
 				if (!this.renderer.context_overflow && !this.parent) {
 					dirty = { type: 'ArrayPattern', elements: [dirty] };
 				}
@@ -385,15 +400,14 @@ export default class Block {
 
 		const body = b`
 			${Array.from(this.variables.values()).map(({ id, init }) => {
-				return init
-					? b`let ${id} = ${init}`
-					: b`let ${id}`;
+				return init ? b`let ${id} = ${init}` : b`let ${id}`;
 			})}
 
 			${this.chunks.init}
 
-			${dev
-				? b`
+			${
+				dev
+					? b`
 					const ${block} = ${return_value};
 					@dispatch_dev("SvelteRegisterBlock", {
 						block: ${block},
@@ -403,7 +417,7 @@ export default class Block {
 						ctx: #ctx
 					});
 					return ${block};`
-				: b`
+					: b`
 					return ${return_value};`
 			}
 		`;
@@ -412,18 +426,20 @@ export default class Block {
 	}
 
 	has_content() {
-		return this.renderer.options.dev ||
+		return (
+			this.renderer.options.dev ||
 			this.first ||
 			this.event_listeners.length > 0 ||
 			this.chunks.intro.length > 0 ||
-			this.chunks.outro.length > 0  ||
+			this.chunks.outro.length > 0 ||
 			this.chunks.create.length > 0 ||
 			this.chunks.hydrate.length > 0 ||
 			this.chunks.claim.length > 0 ||
 			this.chunks.mount.length > 0 ||
 			this.chunks.update.length > 0 ||
 			this.chunks.destroy.length > 0 ||
-			this.has_animation;
+			this.has_animation
+		);
 	}
 
 	render() {
@@ -447,19 +463,15 @@ export default class Block {
 		if (this.event_listeners.length > 0) {
 			const dispose: Identifier = {
 				type: 'Identifier',
-				name: `#dispose${chunk}`
+				name: `#dispose${chunk}`,
 			};
 
 			this.add_variable(dispose);
 
 			if (this.event_listeners.length === 1) {
-				this.chunks.mount.push(
-					b`${dispose} = ${this.event_listeners[0]};`
-				);
+				this.chunks.mount.push(b`${dispose} = ${this.event_listeners[0]};`);
 
-				this.chunks.destroy.push(
-					b`${dispose}();`
-				);
+				this.chunks.destroy.push(b`${dispose}();`);
 			} else {
 				this.chunks.mount.push(b`
 					${dispose} = [
@@ -467,9 +479,7 @@ export default class Block {
 					];
 				`);
 
-				this.chunks.destroy.push(
-					b`@run_all(${dispose});`
-				);
+				this.chunks.destroy.push(b`@run_all(${dispose});`);
 			}
 		}
 	}

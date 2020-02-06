@@ -13,8 +13,7 @@ const GRAM_SIZE_UPPER = 3;
 
 // return an edit distance from 0 to 1
 function _distance(str1: string, str2: string) {
-	if (str1 === null && str2 === null)
-		throw 'Trying to compare two null values';
+	if (str1 === null && str2 === null) throw 'Trying to compare two null values';
 	if (str1 === null || str2 === null) return 0;
 	str1 = String(str1);
 	str2 = String(str2);
@@ -56,7 +55,8 @@ function levenshtein(str1: string, str2: string) {
 const non_word_regex = /[^\w, ]+/;
 
 function iterate_grams(value: string, gram_size = 2) {
-	const simplified = '-' + value.toLowerCase().replace(non_word_regex, '') + '-';
+	const simplified =
+		'-' + value.toLowerCase().replace(non_word_regex, '') + '-';
 	const len_diff = gram_size - simplified.length;
 	const results = [];
 

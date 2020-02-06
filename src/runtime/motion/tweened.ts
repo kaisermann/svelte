@@ -77,7 +77,7 @@ export function tweened<T>(value?: T, defaults: Options<T> = {}): Tweened<T> {
 
 	function set(new_value: T, opts: Options<T>) {
 		if (value == null) {
-			store.set(value = new_value);
+			store.set((value = new_value));
 			return Promise.resolve();
 		}
 
@@ -90,7 +90,7 @@ export function tweened<T>(value?: T, defaults: Options<T> = {}): Tweened<T> {
 			delay = 0,
 			duration = 400,
 			easing = linear,
-			interpolate = get_interpolator
+			interpolate = get_interpolator,
 		} = assign(assign({}, defaults), opts);
 
 		const start = now() + delay;
@@ -101,7 +101,8 @@ export function tweened<T>(value?: T, defaults: Options<T> = {}): Tweened<T> {
 
 			if (!started) {
 				fn = interpolate(value, new_value);
-				if (typeof duration === 'function') duration = duration(value, new_value);
+				if (typeof duration === 'function')
+					duration = duration(value, new_value);
 				started = true;
 			}
 
@@ -113,12 +114,12 @@ export function tweened<T>(value?: T, defaults: Options<T> = {}): Tweened<T> {
 			const elapsed = now - start;
 
 			if (elapsed > duration) {
-				store.set(value = new_value);
+				store.set((value = new_value));
 				return false;
 			}
 
 			// @ts-ignore
-			store.set(value = fn(easing(elapsed / duration)));
+			store.set((value = fn(easing(elapsed / duration))));
 			return true;
 		});
 
@@ -128,6 +129,6 @@ export function tweened<T>(value?: T, defaults: Options<T> = {}): Tweened<T> {
 	return {
 		set,
 		update: (fn, opts: Options<T>) => set(fn(target_value, value), opts),
-		subscribe: store.subscribe
+		subscribe: store.subscribe,
 	};
 }

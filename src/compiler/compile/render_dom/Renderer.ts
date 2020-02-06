@@ -3,7 +3,14 @@ import { CompileOptions, Var } from '../../interfaces';
 import Component from '../Component';
 import FragmentWrapper from './wrappers/Fragment';
 import { x } from 'code-red';
-import { Node, Identifier, MemberExpression, Literal, Expression, BinaryExpression } from 'estree';
+import {
+	Node,
+	Identifier,
+	MemberExpression,
+	Literal,
+	Expression,
+	BinaryExpression,
+} from 'estree';
 import flatten_reference from '../utils/flatten_reference';
 
 interface ContextMember {
@@ -45,10 +52,14 @@ export default class Renderer {
 
 		this.file_var = options.dev && this.component.get_unique_name('file');
 
-		component.vars.filter(v => !v.hoistable || (v.export_name && !v.module)).forEach(v => this.add_to_context(v.name));
+		component.vars
+			.filter(v => !v.hoistable || (v.export_name && !v.module))
+			.forEach(v => this.add_to_context(v.name));
 
 		// ensure store values are included in context
-		component.vars.filter(v => v.subscribable).forEach(v => this.add_to_context(`$${v.name}`));
+		component.vars
+			.filter(v => v.subscribable)
+			.forEach(v => this.add_to_context(`$${v.name}`));
 
 		if (component.var_lookup.has('$$props')) {
 			this.add_to_context('$$props');
@@ -116,8 +127,12 @@ export default class Renderer {
 			}
 		});
 
-		this.context.sort((a, b) => (b.priority - a.priority) || ((a.index.value as number) - (b.index.value as number)));
-		this.context.forEach((member, i) => member.index.value = i);
+		this.context.sort(
+			(a, b) =>
+				b.priority - a.priority ||
+				(a.index.value as number) - (b.index.value as number)
+		);
+		this.context.forEach((member, i) => (member.index.value = i));
 	}
 
 	add_to_context(name: string, contextual = false) {
@@ -128,7 +143,7 @@ export default class Renderer {
 				is_contextual: false,
 				is_non_contextual: false, // shadowed vars could be contextual and non-contextual
 				variable: null,
-				priority: 0
+				priority: 0,
 			};
 
 			this.context_lookup.set(name, member);
@@ -152,8 +167,13 @@ export default class Renderer {
 		const variable = this.component.var_lookup.get(name);
 		const member = this.context_lookup.get(name);
 
-		if (variable && (variable.subscribable && (variable.reassigned || variable.export_name))) {
-			return x`${`$$subscribe_${name}`}($$invalidate(${member.index}, ${value || name}))`;
+		if (
+			variable &&
+			variable.subscribable &&
+			(variable.reassigned || variable.export_name)
+		) {
+			return x`${`$$subscribe_${name}`}($$invalidate(${member.index}, ${value ||
+				name}))`;
 		}
 
 		if (name[0] === '$' && name[1] !== '$') {
@@ -161,14 +181,12 @@ export default class Renderer {
 		}
 
 		if (
-			variable && (
-				variable.module || (
-					!variable.referenced &&
+			variable &&
+			(variable.module ||
+				(!variable.referenced &&
 					!variable.is_reactive_dependency &&
 					!variable.export_name &&
-					!name.startsWith('$$')
-				)
-			)
+					!name.startsWith('$$')))
 		) {
 			return value || name;
 		}
@@ -181,8 +199,8 @@ export default class Renderer {
 		const deps = new Set([name]);
 
 		deps.forEach(name => {
-			const reactive_declarations = this.component.reactive_declarations.filter(x =>
-				x.assignees.has(name)
+			const reactive_declarations = this.component.reactive_declarations.filter(
+				x => x.assignees.has(name)
 			);
 			reactive_declarations.forEach(declaration => {
 				declaration.dependencies.forEach(name => {
@@ -203,13 +221,13 @@ export default class Renderer {
 	dirty(names, is_reactive_declaration = false): Expression {
 		const renderer = this;
 
-		const dirty = (is_reactive_declaration
-			? x`$$self.$$.dirty`
-			: x`#dirty`) as Identifier | MemberExpression;
+		const dirty = (is_reactive_declaration ? x`$$self.$$.dirty` : x`#dirty`) as
+			| Identifier
+			| MemberExpression;
 
 		const get_bitmask = () => {
 			const bitmask: BitMasks = [];
-			names.forEach((name) => {
+			names.forEach(name => {
 				const member = renderer.context_lookup.get(name);
 
 				if (!member) return;
@@ -220,7 +238,7 @@ export default class Renderer {
 
 				const value = member.index.value as number;
 				const i = (value / 31) | 0;
-				const n = 1 << (value % 31);
+				const n = 1 << value % 31;
 
 				if (!bitmask[i]) bitmask[i] = { n: 0, names: [] };
 
@@ -247,12 +265,16 @@ export default class Renderer {
 					return bitmask
 						.map((b, i) => ({ b, i }))
 						.filter(({ b }) => b)
-						.map(({ b, i }) => x`${dirty}[${i}] & /*${b.names.join(', ')}*/ ${b.n}`)
+						.map(
+							({ b, i }) => x`${dirty}[${i}] & /*${b.names.join(', ')}*/ ${b.n}`
+						)
 						.reduce((lhs, rhs) => x`${lhs} | ${rhs}`);
 				}
 
-				return x`${dirty} & /*${names.join(', ')}*/ ${bitmask[0].n}` as BinaryExpression;
-			}
+				return x`${dirty} & /*${names.join(', ')}*/ ${
+					bitmask[0].n
+				}` as BinaryExpression;
+			},
 		} as any;
 	}
 

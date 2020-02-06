@@ -2,7 +2,11 @@ import Renderer, { RenderOptions } from '../Renderer';
 import AwaitBlock from '../../nodes/AwaitBlock';
 import { x } from 'code-red';
 
-export default function(node: AwaitBlock, renderer: Renderer, options: RenderOptions) {
+export default function(
+	node: AwaitBlock,
+	renderer: Renderer,
+	options: RenderOptions
+) {
 	renderer.push();
 	renderer.render(node.pending.children, options);
 	const pending = renderer.pop();

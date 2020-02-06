@@ -8,7 +8,7 @@ import {
 	loadSvelte,
 	env,
 	setupHtmlEqual,
-	shouldUpdateExpected
+	shouldUpdateExpected,
 } from '../helpers.js';
 
 let compileOptions = null;
@@ -25,12 +25,15 @@ describe('hydration', () => {
 					filename,
 					hydratable: true,
 					format: 'cjs',
-					sveltePath
+					sveltePath,
 				},
 				compileOptions
 			);
 
-			const { js } = svelte.compile(fs.readFileSync(filename, 'utf-8'), options);
+			const { js } = svelte.compile(
+				fs.readFileSync(filename, 'utf-8'),
+				options
+			);
 
 			return module._compile(js.code, filename);
 		};
@@ -82,11 +85,14 @@ describe('hydration', () => {
 				const component = new SvelteComponent({
 					target,
 					hydrate: true,
-					props: config.props
+					props: config.props,
 				});
 
 				try {
-					assert.htmlEqual(target.innerHTML, fs.readFileSync(`${cwd}/_after.html`, 'utf-8'));
+					assert.htmlEqual(
+						target.innerHTML,
+						fs.readFileSync(`${cwd}/_after.html`, 'utf-8')
+					);
 				} catch (error) {
 					if (shouldUpdateExpected()) {
 						fs.writeFileSync(`${cwd}/_after.html`, target.innerHTML);
@@ -98,7 +104,10 @@ describe('hydration', () => {
 
 				if (before_head) {
 					try {
-						assert.htmlEqual(head.innerHTML, fs.readFileSync(`${cwd}/_after_head.html`, 'utf-8'));
+						assert.htmlEqual(
+							head.innerHTML,
+							fs.readFileSync(`${cwd}/_after_head.html`, 'utf-8')
+						);
 					} catch (error) {
 						if (shouldUpdateExpected()) {
 							fs.writeFileSync(`${cwd}/_after_head.html`, head.innerHTML);
@@ -117,14 +126,15 @@ describe('hydration', () => {
 				}
 			} catch (err) {
 				showOutput(cwd, {
-					hydratable: true
+					hydratable: true,
 				});
 				throw err;
 			}
 
-			if (config.show) showOutput(cwd, {
-				hydratable: true
-			});
+			if (config.show)
+				showOutput(cwd, {
+					hydratable: true,
+				});
 		});
 	}
 

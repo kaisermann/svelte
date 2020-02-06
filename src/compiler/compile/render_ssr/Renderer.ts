@@ -36,10 +36,10 @@ const handlers: Record<string, Handler> = {
 	Slot,
 	Text,
 	Title,
-	Window: noop
+	Window: noop,
 };
 
-export interface RenderOptions extends CompileOptions{
+export interface RenderOptions extends CompileOptions {
 	locate: (c: number) => { line: number; column: number };
 	head_id?: string;
 }
@@ -68,7 +68,7 @@ export default class Renderer {
 		this.literal.quasis.push({
 			type: 'TemplateElement',
 			value: { raw: this.current.value, cooked: null },
-			tail: false
+			tail: false,
 		});
 
 		this.literal.expressions.push(node);
@@ -76,13 +76,13 @@ export default class Renderer {
 	}
 
 	push() {
-		const current = this.current = { value: '' };
+		const current = (this.current = { value: '' });
 
-		const literal = this.literal = {
+		const literal = (this.literal = {
 			type: 'TemplateLiteral',
 			expressions: [],
-			quasis: []
-		};
+			quasis: [],
+		});
 
 		this.stack.push({ current, literal });
 	}
@@ -91,7 +91,7 @@ export default class Renderer {
 		this.literal.quasis.push({
 			type: 'TemplateElement',
 			value: { raw: this.current.value, cooked: null },
-			tail: true
+			tail: true,
 		});
 
 		const popped = this.stack.pop();

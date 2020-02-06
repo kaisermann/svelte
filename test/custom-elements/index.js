@@ -4,7 +4,7 @@ import * as http from 'http';
 import { rollup } from 'rollup';
 import * as virtual from '@rollup/plugin-virtual';
 import * as puppeteer from 'puppeteer';
-import { addLineNumbers, loadConfig, loadSvelte } from "../helpers.js";
+import { addLineNumbers, loadConfig, loadSvelte } from '../helpers.js';
 import { deepEqual } from 'assert';
 
 const page = `
@@ -25,7 +25,7 @@ describe('custom-elements', function() {
 	let code;
 
 	function create_server() {
-		return new Promise((fulfil) => {
+		return new Promise(fulfil => {
 			const server = http.createServer((req, res) => {
 				if (req.url === '/') {
 					res.end(page);
@@ -84,20 +84,20 @@ describe('custom-elements', function() {
 							if (id.endsWith('.svelte')) {
 								const compiled = svelte.compile(code, {
 									customElement: true,
-									dev: config.dev
+									dev: config.dev,
 								});
 
 								compiled.warnings.forEach(w => warnings.push(w));
 
 								return compiled.js;
 							}
-						}
+						},
 					},
 
 					virtual({
-						assert
-					})
-				]
+						assert,
+					}),
+				],
 			});
 
 			const result = await bundle.generate({ format: 'iife', name: 'test' });
@@ -117,20 +117,25 @@ describe('custom-elements', function() {
 			try {
 				await page.goto('http://localhost:6789');
 
-				const result = await page.evaluate(() => test(document.querySelector('main')));
+				const result = await page.evaluate(() =>
+					test(document.querySelector('main'))
+				);
 				if (result) console.log(result);
 			} catch (err) {
 				console.log(addLineNumbers(code));
 				throw err;
 			} finally {
 				if (expected_warnings) {
-					deepEqual(warnings.map(w => ({
-						code: w.code,
-						message: w.message,
-						pos: w.pos,
-						start: w.start,
-						end: w.end
-					})), expected_warnings);
+					deepEqual(
+						warnings.map(w => ({
+							code: w.code,
+							message: w.message,
+							pos: w.pos,
+							start: w.start,
+							end: w.end,
+						})),
+						expected_warnings
+					);
 				}
 			}
 		});

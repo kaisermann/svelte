@@ -4,7 +4,12 @@ import CatchBlock from '../CatchBlock';
 import InlineComponent from '../InlineComponent';
 import Element from '../Element';
 
-type NodeWithScope = EachBlock | ThenBlock | CatchBlock | InlineComponent | Element;
+type NodeWithScope =
+	| EachBlock
+	| ThenBlock
+	| CatchBlock
+	| InlineComponent
+	| Element;
 
 export default class TemplateScope {
 	names: Set<string>;
@@ -15,7 +20,9 @@ export default class TemplateScope {
 	constructor(parent?: TemplateScope) {
 		this.parent = parent;
 		this.names = new Set(parent ? parent.names : []);
-		this.dependencies_for_name = new Map(parent ? parent.dependencies_for_name : []);
+		this.dependencies_for_name = new Map(
+			parent ? parent.dependencies_for_name : []
+		);
 	}
 
 	add(name, dependencies: Set<string>, owner) {
@@ -31,16 +38,22 @@ export default class TemplateScope {
 	}
 
 	is_top_level(name: string) {
-		return !this.parent || !this.names.has(name) && this.parent.is_top_level(name);
+		return (
+			!this.parent || (!this.names.has(name) && this.parent.is_top_level(name))
+		);
 	}
 
 	get_owner(name: string): NodeWithScope {
-		return this.owners.get(name) || (this.parent && this.parent.get_owner(name));
+		return (
+			this.owners.get(name) || (this.parent && this.parent.get_owner(name))
+		);
 	}
 
 	is_let(name: string) {
 		const owner = this.get_owner(name);
-		return owner && (owner.type === 'Element' || owner.type === 'InlineComponent');
+		return (
+			owner && (owner.type === 'Element' || owner.type === 'InlineComponent')
+		);
 	}
 
 	is_await(name: string) {

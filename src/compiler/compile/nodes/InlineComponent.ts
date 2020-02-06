@@ -31,9 +31,10 @@ export default class InlineComponent extends Node {
 
 		this.name = info.name;
 
-		this.expression = this.name === 'svelte:component'
-			? new Expression(component, this, scope, info.expression)
-			: null;
+		this.expression =
+			this.name === 'svelte:component'
+				? new Expression(component, this, scope, info.expression)
+				: null;
 
 		info.attributes.forEach(node => {
 			/* eslint-disable no-fallthrough */
@@ -41,17 +42,17 @@ export default class InlineComponent extends Node {
 				case 'Action':
 					component.error(node, {
 						code: `invalid-action`,
-						message: `Actions can only be applied to DOM elements, not components`
+						message: `Actions can only be applied to DOM elements, not components`,
 					});
 
 				case 'Attribute':
 					if (node.name === 'slot') {
 						component.error(node, {
 							code: `invalid-prop`,
-							message: `'slot' is reserved for future use in named slots`
+							message: `'slot' is reserved for future use in named slots`,
 						});
 					}
-					// fallthrough
+				// fallthrough
 				case 'Spread':
 					this.attributes.push(new Attribute(component, this, scope, node));
 					break;
@@ -63,7 +64,7 @@ export default class InlineComponent extends Node {
 				case 'Class':
 					component.error(node, {
 						code: `invalid-class`,
-						message: `Classes can only be applied to DOM elements, not components`
+						message: `Classes can only be applied to DOM elements, not components`,
 					});
 
 				case 'EventHandler':
@@ -77,7 +78,7 @@ export default class InlineComponent extends Node {
 				case 'Transition':
 					component.error(node, {
 						code: `invalid-transition`,
-						message: `Transitions can only be applied to DOM elements, not components`
+						message: `Transitions can only be applied to DOM elements, not components`,
 					});
 
 				default:
@@ -105,7 +106,7 @@ export default class InlineComponent extends Node {
 				if (modifier !== 'once') {
 					component.error(handler, {
 						code: 'invalid-event-modifier',
-						message: `Event modifiers other than 'once' can only be used on DOM elements`
+						message: `Event modifiers other than 'once' can only be used on DOM elements`,
 					});
 				}
 			});

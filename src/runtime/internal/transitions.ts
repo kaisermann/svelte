@@ -1,12 +1,12 @@
 import { identity as linear, is_function, noop, run_all } from './utils';
-import { now } from "./environment";
+import { now } from './environment';
 import { loop } from './loop';
 import { create_rule, delete_rule } from './style_manager';
 import { custom_event } from './dom';
 import { add_render_callback } from './scheduler';
 import { TransitionConfig } from '../transition';
 
-let promise: Promise<void>|null;
+let promise: Promise<void> | null;
 
 function wait() {
 	if (!promise) {
@@ -28,9 +28,9 @@ let outros;
 
 export function group_outros() {
 	outros = {
-		r: 0,     // remaining outros
-		c: [],    // callbacks
-		p: outros // parent group
+		r: 0, // remaining outros
+		c: [], // callbacks
+		p: outros, // parent group
 	};
 }
 
@@ -69,7 +69,11 @@ const null_transition: TransitionConfig = { duration: 0 };
 
 type TransitionFn = (node: Element, params: any) => TransitionConfig;
 
-export function create_in_transition(node: Element & ElementCSSInlineStyle, fn: TransitionFn, params: any) {
+export function create_in_transition(
+	node: Element & ElementCSSInlineStyle,
+	fn: TransitionFn,
+	params: any
+) {
 	let config = fn(node, params);
 	let running = false;
 	let animation_name;
@@ -81,15 +85,20 @@ export function create_in_transition(node: Element & ElementCSSInlineStyle, fn: 
 	}
 
 	function go() {
-		const {
-			delay = 0,
-			duration = 300,
-			easing = linear,
-			tick = noop,
-			css
-		} = config || null_transition;
+		const { delay = 0, duration = 300, easing = linear, tick = noop, css } =
+			config || null_transition;
 
-		if (css) animation_name = create_rule(node, 0, 1, duration, delay, easing, css, uid++);
+		if (css)
+			animation_name = create_rule(
+				node,
+				0,
+				1,
+				duration,
+				delay,
+				easing,
+				css,
+				uid++
+			);
 		tick(0, 1);
 
 		const start_time = now() + delay;
@@ -108,7 +117,7 @@ export function create_in_transition(node: Element & ElementCSSInlineStyle, fn: 
 					dispatch(node, true, 'end');
 
 					cleanup();
-					return running = false;
+					return (running = false);
 				}
 
 				if (now >= start_time) {
@@ -146,11 +155,15 @@ export function create_in_transition(node: Element & ElementCSSInlineStyle, fn: 
 				cleanup();
 				running = false;
 			}
-		}
+		},
 	};
 }
 
-export function create_out_transition(node: Element & ElementCSSInlineStyle, fn: TransitionFn, params: any) {
+export function create_out_transition(
+	node: Element & ElementCSSInlineStyle,
+	fn: TransitionFn,
+	params: any
+) {
 	let config = fn(node, params);
 	let running = true;
 	let animation_name;
@@ -160,15 +173,11 @@ export function create_out_transition(node: Element & ElementCSSInlineStyle, fn:
 	group.r += 1;
 
 	function go() {
-		const {
-			delay = 0,
-			duration = 300,
-			easing = linear,
-			tick = noop,
-			css
-		} = config || null_transition;
+		const { delay = 0, duration = 300, easing = linear, tick = noop, css } =
+			config || null_transition;
 
-		if (css) animation_name = create_rule(node, 1, 0, duration, delay, easing, css);
+		if (css)
+			animation_name = create_rule(node, 1, 0, duration, delay, easing, css);
 
 		const start_time = now() + delay;
 		const end_time = start_time + duration;
@@ -221,11 +230,16 @@ export function create_out_transition(node: Element & ElementCSSInlineStyle, fn:
 				if (animation_name) delete_rule(node, animation_name);
 				running = false;
 			}
-		}
+		},
 	};
 }
 
-export function create_bidirectional_transition(node: Element & ElementCSSInlineStyle, fn: TransitionFn, params: any, intro: boolean) {
+export function create_bidirectional_transition(
+	node: Element & ElementCSSInlineStyle,
+	fn: TransitionFn,
+	params: any,
+	intro: boolean
+) {
 	let config = fn(node, params);
 
 	let t = intro ? 0 : 1;
@@ -249,22 +263,17 @@ export function create_bidirectional_transition(node: Element & ElementCSSInline
 			duration,
 			start: program.start,
 			end: program.start + duration,
-			group: program.group
+			group: program.group,
 		};
 	}
 
 	function go(b) {
-		const {
-			delay = 0,
-			duration = 300,
-			easing = linear,
-			tick = noop,
-			css
-		} = config || null_transition;
+		const { delay = 0, duration = 300, easing = linear, tick = noop, css } =
+			config || null_transition;
 
 		const program = {
 			start: now() + delay,
-			b
+			b,
 		};
 
 		if (!b) {
@@ -297,13 +306,21 @@ export function create_bidirectional_transition(node: Element & ElementCSSInline
 
 					if (css) {
 						clear_animation();
-						animation_name = create_rule(node, t, running_program.b, running_program.duration, 0, easing, config.css);
+						animation_name = create_rule(
+							node,
+							t,
+							running_program.b,
+							running_program.duration,
+							0,
+							easing,
+							config.css
+						);
 					}
 				}
 
 				if (running_program) {
 					if (now >= running_program.end) {
-						tick(t = running_program.b, 1 - t);
+						tick((t = running_program.b), 1 - t);
 						dispatch(node, running_program.b, 'end');
 
 						if (!pending_program) {
@@ -313,16 +330,17 @@ export function create_bidirectional_transition(node: Element & ElementCSSInline
 								clear_animation();
 							} else {
 								// outro — needs to be coordinated
-								if (!--running_program.group.r) run_all(running_program.group.c);
+								if (!--running_program.group.r)
+									run_all(running_program.group.c);
 							}
 						}
 
 						running_program = null;
-					}
-
-					else if (now >= running_program.start) {
+					} else if (now >= running_program.start) {
 						const p = now - running_program.start;
-						t = running_program.a + running_program.d * easing(p / running_program.duration);
+						t =
+							running_program.a +
+							running_program.d * easing(p / running_program.duration);
 						tick(t, 1 - t);
 					}
 				}
@@ -348,6 +366,6 @@ export function create_bidirectional_transition(node: Element & ElementCSSInline
 		end() {
 			clear_animation();
 			running_program = pending_program = null;
-		}
+		},
 	};
 }

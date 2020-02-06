@@ -21,11 +21,13 @@ export function spread(args, classes_to_add) {
 		if (invalid_attribute_name_character.test(name)) return;
 
 		const value = attributes[name];
-		if (value === true) str += " " + name;
+		if (value === true) str += ' ' + name;
 		else if (boolean_attributes.has(name.toLowerCase())) {
-			if (value) str += " " + name;
+			if (value) str += ' ' + name;
 		} else if (value != null) {
-			str += ` ${name}="${String(value).replace(/"/g, '&#34;').replace(/'/g, '&#39;')}"`;
+			str += ` ${name}="${String(value)
+				.replace(/"/g, '&#34;')
+				.replace(/'/g, '&#39;')}"`;
 		}
 	});
 
@@ -37,7 +39,7 @@ export const escaped = {
 	"'": '&#39;',
 	'&': '&amp;',
 	'<': '&lt;',
-	'>': '&gt;'
+	'>': '&gt;',
 };
 
 export function escape(html) {
@@ -53,13 +55,15 @@ export function each(items, fn) {
 }
 
 export const missing_component = {
-	$$render: () => ''
+	$$render: () => '',
 };
 
 export function validate_component(component, name) {
 	if (!component || !component.$$render) {
 		if (name === 'svelte:component') name += ' this={...}';
-		throw new Error(`<${name}> is not a valid SSR component. You may need to review your build config to ensure that dependencies are compiled, rather than imported as pre-compiled modules`);
+		throw new Error(
+			`<${name}> is not a valid SSR component. You may need to review your build config to ensure that dependencies are compiled, rather than imported as pre-compiled modules`
+		);
 	}
 
 	return component;
@@ -85,7 +89,7 @@ export function create_ssr_component(fn) {
 			on_mount: [],
 			before_update: [],
 			after_update: [],
-			callbacks: blank_object()
+			callbacks: blank_object(),
 		};
 
 		set_current_component({ $$ });
@@ -116,20 +120,30 @@ export function create_ssr_component(fn) {
 			return {
 				html,
 				css: {
-					code: Array.from(result.css).map(css => css.code).join('\n'),
-					map: null // TODO
+					code: Array.from(result.css)
+						.map(css => css.code)
+						.join('\n'),
+					map: null, // TODO
 				},
-				head: result.title + result.head
+				head: result.title + result.head,
 			};
 		},
 
-		$$render
+		$$render,
 	};
 }
 
 export function add_attribute(name, value, boolean) {
 	if (value == null || (boolean && !value)) return '';
-	return ` ${name}${value === true ? '' : `=${typeof value === 'string' ? JSON.stringify(escape(value)) : `"${value}"`}`}`;
+	return ` ${name}${
+		value === true
+			? ''
+			: `=${
+					typeof value === 'string'
+						? JSON.stringify(escape(value))
+						: `"${value}"`
+			  }`
+	}`;
 }
 
 export function add_classes(classes) {

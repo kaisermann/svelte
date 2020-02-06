@@ -1,6 +1,11 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
-import { env, svelte, setupHtmlEqual, shouldUpdateExpected } from '../helpers.js';
+import {
+	env,
+	svelte,
+	setupHtmlEqual,
+	shouldUpdateExpected,
+} from '../helpers.js';
 
 function try_require(file) {
 	try {
@@ -28,7 +33,8 @@ function create(code) {
 	const module = { exports: {} };
 	fn(module, module.exports, id => {
 		if (id === 'svelte') return require('../../index.js');
-		if (id.startsWith('svelte/')) return require(id.replace('svelte', '../../'));
+		if (id.startsWith('svelte/'))
+			return require(id.replace('svelte', '../../'));
 
 		return require(id);
 	});
@@ -67,7 +73,10 @@ describe('css', () => {
 
 			const ssr = svelte.compile(
 				input,
-				Object.assign(config.compileOptions || {}, { format: 'cjs', generate: 'ssr' })
+				Object.assign(config.compileOptions || {}, {
+					format: 'cjs',
+					generate: 'ssr',
+				})
 			);
 
 			assert.equal(dom.css.code, ssr.css.code);
@@ -81,15 +90,21 @@ describe('css', () => {
 			fs.writeFileSync(`${__dirname}/samples/${dir}/_actual.css`, dom.css.code);
 			const expected = {
 				html: read(`${__dirname}/samples/${dir}/expected.html`),
-				css: read(`${__dirname}/samples/${dir}/expected.css`)
+				css: read(`${__dirname}/samples/${dir}/expected.css`),
 			};
 
-			const actual_css = dom.css.code.replace(/svelte(-ref)?-[a-z0-9]+/g, (m, $1) => $1 ? m : 'svelte-xyz');
+			const actual_css = dom.css.code.replace(
+				/svelte(-ref)?-[a-z0-9]+/g,
+				(m, $1) => ($1 ? m : 'svelte-xyz')
+			);
 			try {
 				assert.equal(actual_css, expected.css);
 			} catch (error) {
 				if (shouldUpdateExpected()) {
-					fs.writeFileSync(`${__dirname}/samples/${dir}/expected.css`, actual_css);
+					fs.writeFileSync(
+						`${__dirname}/samples/${dir}/expected.css`,
+						actual_css
+					);
 					console.log(`Updated ${dir}/expected.css.`);
 				} else {
 					throw error;
@@ -128,7 +143,10 @@ describe('css', () => {
 
 					fs.writeFileSync(`${__dirname}/samples/${dir}/_actual.html`, html);
 
-					const actual_html = html.replace(/svelte(-ref)?-[a-z0-9]+/g, (m, $1) => $1 ? m : 'svelte-xyz');
+					const actual_html = html.replace(
+						/svelte(-ref)?-[a-z0-9]+/g,
+						(m, $1) => ($1 ? m : 'svelte-xyz')
+					);
 					assert.htmlEqual(actual_html, expected.html);
 
 					window.document.head.innerHTML = ''; // remove added styles
@@ -139,7 +157,11 @@ describe('css', () => {
 
 				// ssr
 				try {
-					const actual_ssr = ServerComponent.render(config.props).html.replace(/svelte(-ref)?-[a-z0-9]+/g, (m, $1) => $1 ? m : 'svelte-xyz');
+					const actual_ssr = ServerComponent.render(
+						config.props
+					).html.replace(/svelte(-ref)?-[a-z0-9]+/g, (m, $1) =>
+						$1 ? m : 'svelte-xyz'
+					);
 					assert.htmlEqual(actual_ssr, expected.html);
 				} catch (err) {
 					console.log(ssr.js.code);

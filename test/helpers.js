@@ -54,7 +54,7 @@ export function cleanRequireCache() {
 const virtualConsole = new jsdom.VirtualConsole();
 virtualConsole.sendTo(console);
 
-const window = new jsdom.JSDOM('<main></main>', {virtualConsole}).window;
+const window = new jsdom.JSDOM('<main></main>', { virtualConsole }).window;
 global.document = window.document;
 global.navigator = window.navigator;
 global.getComputedStyle = window.getComputedStyle;
@@ -201,12 +201,15 @@ export function showOutput(cwd, options = {}, compile = svelte.compile) {
 			const { js } = compile(
 				fs.readFileSync(`${cwd}/${file}`, 'utf-8'),
 				Object.assign(options, {
-					filename: file
+					filename: file,
 				})
 			);
 
-			console.log( // eslint-disable-line no-console
-				`\n>> ${colors.cyan().bold(file)}\n${addLineNumbers(js.code)}\n<< ${colors.cyan().bold(file)}`
+			console.log(
+				// eslint-disable-line no-console
+				`\n>> ${colors.cyan().bold(file)}\n${addLineNumbers(
+					js.code
+				)}\n<< ${colors.cyan().bold(file)}`
 			);
 		} catch (err) {
 			console.log(`failed to generate output: ${err.message}`);
@@ -242,7 +245,7 @@ export function useFakeTimers() {
 		removeFakeTimers() {
 			callbacks.splice(0, callbacks.length);
 			global.setTimeout = original_set_timeout;
-		}
+		},
 	};
 }
 

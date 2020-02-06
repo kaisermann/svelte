@@ -7,7 +7,10 @@ describe('get_name_from_filename', () => {
 	});
 
 	it('uses the directory name, if basename is index', () => {
-		assert.equal(get_name_from_filename('path/to/Widget/index.svelte'), 'Widget');
+		assert.equal(
+			get_name_from_filename('path/to/Widget/index.svelte'),
+			'Widget'
+		);
 	});
 
 	it('handles Windows filenames', () => {

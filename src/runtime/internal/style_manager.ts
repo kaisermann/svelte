@@ -14,7 +14,16 @@ function hash(str: string) {
 	return hash >>> 0;
 }
 
-export function create_rule(node: Element & ElementCSSInlineStyle, a: number, b: number, duration: number, delay: number, ease: (t: number) => number, fn: (t: number, u: number) => string, uid: number = 0) {
+export function create_rule(
+	node: Element & ElementCSSInlineStyle,
+	a: number,
+	b: number,
+	duration: number,
+	delay: number,
+	ease: (t: number) => number,
+	fn: (t: number, u: number) => string,
+	uid: number = 0
+) {
 	const step = 16.666 / duration;
 	let keyframes = '{\n';
 
@@ -34,22 +43,31 @@ export function create_rule(node: Element & ElementCSSInlineStyle, a: number, b:
 		}
 
 		current_rules[name] = true;
-		stylesheet.insertRule(`@keyframes ${name} ${rule}`, stylesheet.cssRules.length);
+		stylesheet.insertRule(
+			`@keyframes ${name} ${rule}`,
+			stylesheet.cssRules.length
+		);
 	}
 
 	const animation = node.style.animation || '';
-	node.style.animation = `${animation ? `${animation}, ` : ``}${name} ${duration}ms linear ${delay}ms 1 both`;
+	node.style.animation = `${
+		animation ? `${animation}, ` : ``
+	}${name} ${duration}ms linear ${delay}ms 1 both`;
 
 	active += 1;
 	return name;
 }
 
-export function delete_rule(node: Element & ElementCSSInlineStyle, name?: string) {
+export function delete_rule(
+	node: Element & ElementCSSInlineStyle,
+	name?: string
+) {
 	node.style.animation = (node.style.animation || '')
 		.split(', ')
-		.filter(name
-			? anim => anim.indexOf(name) < 0 // remove specific animation
-			: anim => anim.indexOf('__svelte') === -1 // remove all Svelte animations
+		.filter(
+			name
+				? anim => anim.indexOf(name) < 0 // remove specific animation
+				: anim => anim.indexOf('__svelte') === -1 // remove all Svelte animations
 		)
 		.join(', ');
 

@@ -54,7 +54,7 @@ export const globals = new Set([
 	'undefined',
 	'URIError',
 	'URL',
-	'window'
+	'window',
 ]);
 
 export const reserved = new Set([
@@ -119,7 +119,8 @@ export function is_valid(str: string): boolean {
 
 	while (i < str.length) {
 		const code = full_char_code_at(str, i);
-		if (!(i === 0 ? isIdentifierStart : isIdentifierChar)(code, true)) return false;
+		if (!(i === 0 ? isIdentifierStart : isIdentifierChar)(code, true))
+			return false;
 
 		i += code <= 0xffff ? 1 : 2;
 	}

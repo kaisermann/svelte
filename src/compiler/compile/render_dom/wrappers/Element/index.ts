@@ -32,30 +32,36 @@ const events = [
 		event_names: ['input'],
 		filter: (node: Element, _name: string) =>
 			node.name === 'textarea' ||
-			node.name === 'input' && !/radio|checkbox|range|file/.test(node.get_static_attribute_value('type') as string)
+			(node.name === 'input' &&
+				!/radio|checkbox|range|file/.test(
+					node.get_static_attribute_value('type') as string
+				)),
 	},
 	{
 		event_names: ['input'],
 		filter: (node: Element, name: string) =>
 			(name === 'textContent' || name === 'innerHTML') &&
-			node.attributes.some(attribute => attribute.name === 'contenteditable')
+			node.attributes.some(attribute => attribute.name === 'contenteditable'),
 	},
 	{
 		event_names: ['change'],
 		filter: (node: Element, _name: string) =>
 			node.name === 'select' ||
-			node.name === 'input' && /radio|checkbox|file/.test(node.get_static_attribute_value('type') as string)
+			(node.name === 'input' &&
+				/radio|checkbox|file/.test(
+					node.get_static_attribute_value('type') as string
+				)),
 	},
 	{
 		event_names: ['change', 'input'],
 		filter: (node: Element, _name: string) =>
-			node.name === 'input' && node.get_static_attribute_value('type') === 'range'
+			node.name === 'input' &&
+			node.get_static_attribute_value('type') === 'range',
 	},
 
 	{
 		event_names: ['elementresize'],
-		filter: (_node: Element, name: string) =>
-			dimensions.test(name)
+		filter: (_node: Element, name: string) => dimensions.test(name),
 	},
 
 	// media events
@@ -63,68 +69,58 @@ const events = [
 		event_names: ['timeupdate'],
 		filter: (node: Element, name: string) =>
 			node.is_media_node() &&
-			(name === 'currentTime' || name === 'played' || name === 'ended')
+			(name === 'currentTime' || name === 'played' || name === 'ended'),
 	},
 	{
 		event_names: ['durationchange'],
 		filter: (node: Element, name: string) =>
-			node.is_media_node() &&
-			name === 'duration'
+			node.is_media_node() && name === 'duration',
 	},
 	{
 		event_names: ['play', 'pause'],
 		filter: (node: Element, name: string) =>
-			node.is_media_node() &&
-			name === 'paused'
+			node.is_media_node() && name === 'paused',
 	},
 	{
 		event_names: ['progress'],
 		filter: (node: Element, name: string) =>
-			node.is_media_node() &&
-			name === 'buffered'
+			node.is_media_node() && name === 'buffered',
 	},
 	{
 		event_names: ['loadedmetadata'],
 		filter: (node: Element, name: string) =>
-			node.is_media_node() &&
-			(name === 'buffered' || name === 'seekable')
+			node.is_media_node() && (name === 'buffered' || name === 'seekable'),
 	},
 	{
 		event_names: ['volumechange'],
 		filter: (node: Element, name: string) =>
-			node.is_media_node() &&
-			name === 'volume'
+			node.is_media_node() && name === 'volume',
 	},
 	{
 		event_names: ['ratechange'],
 		filter: (node: Element, name: string) =>
-			node.is_media_node() &&
-			name === 'playbackRate'
+			node.is_media_node() && name === 'playbackRate',
 	},
 	{
 		event_names: ['seeking', 'seeked'],
 		filter: (node: Element, name: string) =>
-			node.is_media_node() &&
-			(name === 'seeking')
+			node.is_media_node() && name === 'seeking',
 	},
 	{
 		event_names: ['ended'],
 		filter: (node: Element, name: string) =>
-			node.is_media_node() &&
-			name === 'ended'
+			node.is_media_node() && name === 'ended',
 	},
 	{
 		event_names: ['resize'],
 		filter: (node: Element, name: string) =>
-			node.is_media_node() &&
-			(name === 'videoHeight' || name === 'videoWidth')
+			node.is_media_node() && (name === 'videoHeight' || name === 'videoWidth'),
 	},
 
 	// details event
 	{
 		event_names: ['toggle'],
-		filter: (node: Element, _name: string) =>
-			node.name === 'details'
+		filter: (node: Element, _name: string) => node.name === 'details',
 	},
 ];
 
@@ -153,7 +149,7 @@ export default class ElementWrapper extends Wrapper {
 		super(renderer, block, parent, node);
 		this.var = {
 			type: 'Identifier',
-			name: node.name.replace(/[^a-zA-Z0-9_$]/g, '_')
+			name: node.name.replace(/[^a-zA-Z0-9_$]/g, '_'),
 		};
 
 		this.void = is_void(node.name);
@@ -187,28 +183,34 @@ export default class ElementWrapper extends Wrapper {
 				if (owner && owner.node.type === 'InlineComponent') {
 					const name = attribute.get_static_value() as string;
 
-					if (!(owner as unknown as InlineComponentWrapper).slots.has(name)) {
+					if (!((owner as unknown) as InlineComponentWrapper).slots.has(name)) {
 						const child_block = block.child({
 							comment: create_debugging_comment(node, this.renderer.component),
-							name: this.renderer.component.get_unique_name(`create_${sanitize(name)}_slot`),
-							type: 'slot'
+							name: this.renderer.component.get_unique_name(
+								`create_${sanitize(name)}_slot`
+							),
+							type: 'slot',
 						});
 
 						const { scope, lets } = this.node;
 						const seen = new Set(lets.map(l => l.name.name));
 
-						(owner as unknown as InlineComponentWrapper).node.lets.forEach(l => {
-							if (!seen.has(l.name.name)) lets.push(l);
-						});
+						((owner as unknown) as InlineComponentWrapper).node.lets.forEach(
+							l => {
+								if (!seen.has(l.name.name)) lets.push(l);
+							}
+						);
 
-						(owner as unknown as InlineComponentWrapper).slots.set(
+						((owner as unknown) as InlineComponentWrapper).slots.set(
 							name,
 							get_slot_definition(child_block, scope, lets)
 						);
 						this.renderer.blocks.push(child_block);
 					}
 
-					this.slot_block = (owner as unknown as InlineComponentWrapper).slots.get(name).block;
+					this.slot_block = ((owner as unknown) as InlineComponentWrapper).slots.get(
+						name
+					).block;
 					block = this.slot_block;
 				}
 			}
@@ -221,9 +223,13 @@ export default class ElementWrapper extends Wrapper {
 		// ordinarily, there'll only be one... but we need to handle
 		// the rare case where an element can have multiple bindings,
 		// e.g. <audio bind:paused bind:currentTime>
-		this.bindings = this.node.bindings.map(binding => new Binding(block, binding, this));
+		this.bindings = this.node.bindings.map(
+			binding => new Binding(block, binding, this)
+		);
 
-		this.event_handlers = this.node.handlers.map(event_handler => new EventHandler(event_handler, this));
+		this.event_handlers = this.node.handlers.map(
+			event_handler => new EventHandler(event_handler, this)
+		);
 
 		if (node.intro || node.outro) {
 			if (node.intro) block.add_intro(node.intro.is_local);
@@ -235,11 +241,13 @@ export default class ElementWrapper extends Wrapper {
 		}
 
 		// add directive and handler dependencies
-		[node.animation, node.outro, ...node.actions, ...node.classes].forEach(directive => {
-			if (directive && directive.expression) {
-				block.add_dependencies(directive.expression.dependencies);
+		[node.animation, node.outro, ...node.actions, ...node.classes].forEach(
+			directive => {
+				if (directive && directive.expression) {
+					block.add_dependencies(directive.expression.dependencies);
+				}
 			}
-		});
+		);
 
 		node.handlers.forEach(handler => {
 			if (handler.expression) {
@@ -248,11 +256,13 @@ export default class ElementWrapper extends Wrapper {
 		});
 
 		if (this.parent) {
-			if (node.actions.length > 0 ||
+			if (
+				node.actions.length > 0 ||
 				node.animation ||
 				node.bindings.length > 0 ||
 				node.classes.length > 0 ||
-				node.intro || node.outro ||
+				node.intro ||
+				node.outro ||
 				node.handlers.length > 0 ||
 				this.node.name === 'option' ||
 				renderer.options.dev
@@ -262,7 +272,14 @@ export default class ElementWrapper extends Wrapper {
 			}
 		}
 
-		this.fragment = new FragmentWrapper(renderer, block, node.children, this, strip_whitespace, next_sibling);
+		this.fragment = new FragmentWrapper(
+			renderer,
+			block,
+			node.children,
+			this,
+			strip_whitespace,
+			next_sibling
+		);
 
 		if (this.slot_block) {
 			block.parent.add_dependencies(block.dependencies);
@@ -284,14 +301,15 @@ export default class ElementWrapper extends Wrapper {
 		}
 
 		const node = this.var;
-		const nodes = parent_nodes && block.get_unique_name(`${this.var.name}_nodes`); // if we're in unclaimable territory, i.e. <head>, parent_nodes is null
-		const children = x`@children(${this.node.name === 'template' ? x`${node}.content` : node})`;
+		const nodes =
+			parent_nodes && block.get_unique_name(`${this.var.name}_nodes`); // if we're in unclaimable territory, i.e. <head>, parent_nodes is null
+		const children = x`@children(${
+			this.node.name === 'template' ? x`${node}.content` : node
+		})`;
 
 		block.add_variable(node);
 		const render_statement = this.get_render_statement(block);
-		block.chunks.create.push(
-			b`${node} = ${render_statement};`
-		);
+		block.chunks.create.push(b`${node} = ${render_statement};`);
 
 		if (renderer.options.hydratable) {
 			if (parent_nodes) {
@@ -305,16 +323,12 @@ export default class ElementWrapper extends Wrapper {
 					`);
 				}
 			} else {
-				block.chunks.claim.push(
-					b`${node} = ${render_statement};`
-				);
+				block.chunks.claim.push(b`${node} = ${render_statement};`);
 			}
 		}
 
 		if (parent_node) {
-			block.chunks.mount.push(
-				b`@append(${parent_node}, ${node});`
-			);
+			block.chunks.mount.push(b`@append(${parent_node}, ${node});`);
 
 			if (is_head(parent_node)) {
 				block.chunks.destroy.push(b`@detach(${node});`);
@@ -329,32 +343,51 @@ export default class ElementWrapper extends Wrapper {
 
 		// insert static children with textContent or innerHTML
 		const can_use_textcontent = this.can_use_textcontent();
-		if (!this.node.namespace && (this.can_use_innerhtml || can_use_textcontent) && this.fragment.nodes.length > 0) {
-			if (this.fragment.nodes.length === 1 && this.fragment.nodes[0].node.type === 'Text') {
+		if (
+			!this.node.namespace &&
+			(this.can_use_innerhtml || can_use_textcontent) &&
+			this.fragment.nodes.length > 0
+		) {
+			if (
+				this.fragment.nodes.length === 1 &&
+				this.fragment.nodes[0].node.type === 'Text'
+			) {
 				block.chunks.create.push(
-					 // @ts-ignore todo: should it be this.fragment.nodes[0].node.data instead?
-					b`${node}.textContent = ${string_literal(this.fragment.nodes[0].data)};`
+					b`${node}.textContent = ${string_literal(
+						// @ts-ignore todo: should it be this.fragment.nodes[0].node.data instead?
+						this.fragment.nodes[0].data
+					)};`
 				);
 			} else {
 				const state = {
 					quasi: {
 						type: 'TemplateElement',
-						value: { raw: '' }
-					}
+						value: { raw: '' },
+					},
 				};
 
 				const literal = {
 					type: 'TemplateLiteral',
 					expressions: [],
-					quasis: []
+					quasis: [],
 				};
 
 				const can_use_raw_text = !this.can_use_innerhtml && can_use_textcontent;
-				to_html((this.fragment.nodes as unknown as Array<ElementWrapper | TextWrapper>), block, literal, state, can_use_raw_text);
+				to_html(
+					(this.fragment.nodes as unknown) as Array<
+						ElementWrapper | TextWrapper
+					>,
+					block,
+					literal,
+					state,
+					can_use_raw_text
+				);
 				literal.quasis.push(state.quasi);
 
 				block.chunks.create.push(
-					b`${node}.${this.can_use_innerhtml ? 'innerHTML': 'textContent'} = ${literal};`
+					b`${node}.${
+						this.can_use_innerhtml ? 'innerHTML' : 'textContent'
+					} = ${literal};`
 				);
 			}
 		} else {
@@ -367,11 +400,10 @@ export default class ElementWrapper extends Wrapper {
 			});
 		}
 
-		const event_handler_or_binding_uses_context = (
+		const event_handler_or_binding_uses_context =
 			this.bindings.some(binding => binding.handler.uses_context) ||
 			this.node.handlers.some(handler => handler.uses_context) ||
-			this.node.actions.some(action => action.uses_context)
-		);
+			this.node.actions.some(action => action.uses_context);
 
 		if (event_handler_or_binding_uses_context) {
 			block.maintain_context = true;
@@ -393,13 +425,20 @@ export default class ElementWrapper extends Wrapper {
 		if (renderer.options.dev) {
 			const loc = renderer.locate(this.node.start);
 			block.chunks.hydrate.push(
-				b`@add_location(${this.var}, ${renderer.file_var}, ${loc.line - 1}, ${loc.column}, ${this.node.start});`
+				b`@add_location(${this.var}, ${renderer.file_var}, ${loc.line - 1}, ${
+					loc.column
+				}, ${this.node.start});`
 			);
 		}
 	}
 
 	can_use_textcontent() {
-		return this.is_static_content && this.fragment.nodes.every(node => node.node.type === 'Text' || node.node.type === 'MustacheTag');
+		return (
+			this.is_static_content &&
+			this.fragment.nodes.every(
+				node => node.node.type === 'Text' || node.node.type === 'MustacheTag'
+			)
+		);
 	}
 
 	get_render_statement(block: Block) {
@@ -415,7 +454,9 @@ export default class ElementWrapper extends Wrapper {
 
 		const is = this.attributes.find(attr => attr.node.name === 'is');
 		if (is) {
-			return x`@element_is("${name}", ${is.render_chunks(block).reduce((lhs, rhs) => x`${lhs} + ${rhs}`)});`;
+			return x`@element_is("${name}", ${is
+				.render_chunks(block)
+				.reduce((lhs, rhs) => x`${lhs} + ${rhs}`)});`;
 		}
 
 		return x`@element("${name}")`;
@@ -423,8 +464,8 @@ export default class ElementWrapper extends Wrapper {
 
 	get_claim_statement(nodes: Identifier) {
 		const attributes = this.node.attributes
-			.filter((attr) => attr.type === 'Attribute')
-			.map((attr) => p`${attr.name}: true`);
+			.filter(attr => attr.type === 'Attribute')
+			.map(attr => p`${attr.name}: true`);
 
 		const name = this.node.namespace
 			? this.node.name
@@ -435,7 +476,7 @@ export default class ElementWrapper extends Wrapper {
 		return x`@claim_element(${nodes}, "${name}", { ${attributes} }, ${svg})`;
 	}
 
-	add_directives_in_order (block: Block) {
+	add_directives_in_order(block: Block) {
 		interface BindingGroup {
 			events: string[];
 			bindings: Binding[];
@@ -448,13 +489,13 @@ export default class ElementWrapper extends Wrapper {
 				events: event.event_names,
 				bindings: this.bindings
 					.filter(binding => binding.node.name !== 'this')
-					.filter(binding => event.filter(this.node, binding.node.name))
+					.filter(binding => event.filter(this.node, binding.node.name)),
 			}))
 			.filter(group => group.bindings.length);
 
 		const this_binding = this.bindings.find(b => b.node.name === 'this');
 
-		function getOrder (item: OrderedAttribute) {
+		function getOrder(item: OrderedAttribute) {
 			if (item instanceof EventHandler) {
 				return item.node.start;
 			} else if (item instanceof Binding) {
@@ -470,7 +511,7 @@ export default class ElementWrapper extends Wrapper {
 			...bindingGroups,
 			...this.event_handlers,
 			this_binding,
-			...this.node.actions
+			...this.node.actions,
 		] as OrderedAttribute[])
 			.filter(Boolean)
 			.sort((a, b) => getOrder(a) - getOrder(b))
@@ -494,14 +535,16 @@ export default class ElementWrapper extends Wrapper {
 
 		renderer.component.has_reactive_assignments = true;
 
-		const lock = bindingGroup.bindings.some(binding => binding.needs_lock) ?
-			block.get_unique_name(`${this.var.name}_updating`) :
-			null;
+		const lock = bindingGroup.bindings.some(binding => binding.needs_lock)
+			? block.get_unique_name(`${this.var.name}_updating`)
+			: null;
 
 		if (lock) block.add_variable(lock, x`false`);
 
 		[bindingGroup].forEach(group => {
-			const handler = renderer.component.get_unique_name(`${this.var.name}_${group.events.join('_')}_handler`);
+			const handler = renderer.component.get_unique_name(
+				`${this.var.name}_${group.events.join('_')}_handler`
+			);
 			renderer.add_to_context(handler.name);
 
 			// TODO figure out how to handle locks
@@ -513,8 +556,14 @@ export default class ElementWrapper extends Wrapper {
 			group.bindings.forEach(binding => {
 				// TODO this is a mess
 				add_to_set(dependencies, binding.get_dependencies());
-				add_to_set(contextual_dependencies, binding.node.expression.contextual_dependencies);
-				add_to_set(contextual_dependencies, binding.handler.contextual_dependencies);
+				add_to_set(
+					contextual_dependencies,
+					binding.node.expression.contextual_dependencies
+				);
+				add_to_set(
+					contextual_dependencies,
+					binding.handler.contextual_dependencies
+				);
 
 				binding.render(block, lock);
 			});
@@ -524,17 +573,22 @@ export default class ElementWrapper extends Wrapper {
 			// own hands
 			let animation_frame;
 			if (group.events[0] === 'timeupdate') {
-				animation_frame = block.get_unique_name(`${this.var.name}_animationframe`);
+				animation_frame = block.get_unique_name(
+					`${this.var.name}_animationframe`
+				);
 				block.add_variable(animation_frame);
 			}
 
-			const has_local_function = contextual_dependencies.size > 0 || needs_lock || animation_frame;
+			const has_local_function =
+				contextual_dependencies.size > 0 || needs_lock || animation_frame;
 
 			let callee = renderer.reference(handler);
 
 			// TODO dry this out — similar code for event handlers and component bindings
 			if (has_local_function) {
-				const args = Array.from(contextual_dependencies).map(name => renderer.reference(name));
+				const args = Array.from(contextual_dependencies).map(name =>
+					renderer.reference(name)
+				);
 
 				// need to create a block-local function that calls an instance-level function
 				if (animation_frame) {
@@ -562,7 +616,7 @@ export default class ElementWrapper extends Wrapper {
 
 			const params = Array.from(contextual_dependencies).map(name => ({
 				type: 'Identifier',
-				name
+				name,
 			}));
 
 			this.renderer.component.partly_hoisted.push(b`
@@ -578,16 +632,16 @@ export default class ElementWrapper extends Wrapper {
 			group.events.forEach(name => {
 				if (name === 'elementresize') {
 					// special case
-					const resize_listener = block.get_unique_name(`${this.var.name}_resize_listener`);
+					const resize_listener = block.get_unique_name(
+						`${this.var.name}_resize_listener`
+					);
 					block.add_variable(resize_listener);
 
 					block.chunks.mount.push(
 						b`${resize_listener} = @add_resize_listener(${this.var}, ${callee}.bind(${this.var}));`
 					);
 
-					block.chunks.destroy.push(
-						b`${resize_listener}.cancel();`
-					);
+					block.chunks.destroy.push(b`${resize_listener}.cancel();`);
 				} else {
 					block.event_listeners.push(
 						x`@listen(${this.var}, "${name}", ${callee})`
@@ -599,7 +653,7 @@ export default class ElementWrapper extends Wrapper {
 				.map(binding => x`${binding.snippet} === void 0`)
 				.reduce((lhs, rhs) => x`${lhs} || ${rhs}`);
 
-			const should_initialise = (
+			const should_initialise =
 				this.node.name === 'select' ||
 				group.bindings.find(binding => {
 					return (
@@ -608,11 +662,12 @@ export default class ElementWrapper extends Wrapper {
 						binding.node.name === 'innerHTML' ||
 						binding.is_readonly_media_attribute()
 					);
-				})
-			);
+				});
 
 			if (should_initialise) {
-				const callback = has_local_function ? handler : x`() => ${callee}.call(${this.var})`;
+				const callback = has_local_function
+					? handler
+					: x`() => ${callee}.call(${this.var})`;
 				block.chunks.hydrate.push(
 					b`if (${some_initial_state_is_undefined}) @add_render_callback(${callback});`
 				);
@@ -632,16 +687,21 @@ export default class ElementWrapper extends Wrapper {
 
 	add_this_binding(block: Block, this_binding: Binding) {
 		const { renderer } = this;
-		
+
 		renderer.component.has_reactive_assignments = true;
 
-		const binding_callback = bind_this(renderer.component, block, this_binding.node, this.var);
+		const binding_callback = bind_this(
+			renderer.component,
+			block,
+			this_binding.node,
+			this.var
+		);
 		block.chunks.mount.push(binding_callback);
 	}
 
 	add_attributes(block: Block) {
 		// Get all the class dependencies first
-		this.attributes.forEach((attribute) => {
+		this.attributes.forEach(attribute => {
 			if (attribute.node.name === 'class') {
 				const dependencies = attribute.node.get_dependencies();
 				this.class_dependencies.push(...dependencies);
@@ -653,7 +713,7 @@ export default class ElementWrapper extends Wrapper {
 			return;
 		}
 
-		this.attributes.forEach((attribute) => {
+		this.attributes.forEach(attribute => {
 			attribute.render(block);
 		});
 	}
@@ -665,29 +725,27 @@ export default class ElementWrapper extends Wrapper {
 		const initial_props = [];
 		const updates = [];
 
-		this.attributes
-			.forEach(attr => {
-				const condition = attr.node.dependencies.size > 0
+		this.attributes.forEach(attr => {
+			const condition =
+				attr.node.dependencies.size > 0
 					? block.renderer.dirty(Array.from(attr.node.dependencies))
 					: null;
 
-				if (attr.node.is_spread) {
-					const snippet = attr.node.expression.manipulate(block);
+			if (attr.node.is_spread) {
+				const snippet = attr.node.expression.manipulate(block);
 
-					initial_props.push(snippet);
+				initial_props.push(snippet);
 
-					updates.push(condition ? x`${condition} && ${snippet}` : snippet);
-				} else {
-					const metadata = attr.get_metadata();
-					const snippet = x`{ ${
-						(metadata && metadata.property_name) ||
-						fix_attribute_casing(attr.node.name)
-					}: ${attr.get_value(block)} }`;
-					initial_props.push(snippet);
+				updates.push(condition ? x`${condition} && ${snippet}` : snippet);
+			} else {
+				const metadata = attr.get_metadata();
+				const snippet = x`{ ${(metadata && metadata.property_name) ||
+					fix_attribute_casing(attr.node.name)}: ${attr.get_value(block)} }`;
+				initial_props.push(snippet);
 
-					updates.push(condition ? x`${condition} && ${snippet}` : snippet);
-				}
-			});
+				updates.push(condition ? x`${condition} && ${snippet}` : snippet);
+			}
+		});
 
 		block.chunks.init.push(b`
 			let ${levels} = [${initial_props}];
@@ -698,11 +756,12 @@ export default class ElementWrapper extends Wrapper {
 			}
 		`);
 
-		const fn = this.node.namespace === namespaces.svg ? x`@set_svg_attributes` : x`@set_attributes`;
+		const fn =
+			this.node.namespace === namespaces.svg
+				? x`@set_svg_attributes`
+				: x`@set_attributes`;
 
-		block.chunks.hydrate.push(
-			b`${fn}(${this.var}, ${data});`
-		);
+		block.chunks.hydrate.push(b`${fn}(${this.var}, ${data});`);
 
 		block.chunks.update.push(b`
 			${fn}(${this.var}, @get_spread_update(${levels}, [
@@ -711,9 +770,7 @@ export default class ElementWrapper extends Wrapper {
 		`);
 	}
 
-	add_transitions(
-		block: Block
-	) {
+	add_transitions(block: Block) {
 		const { intro, outro } = this.node;
 		if (!intro && !outro) return;
 
@@ -758,11 +815,11 @@ export default class ElementWrapper extends Wrapper {
 			}
 
 			block.chunks.destroy.push(b`if (detaching && ${name}) ${name}.end();`);
-		}
-
-		else {
-			const intro_name = intro && block.get_unique_name(`${this.var.name}_intro`);
-			const outro_name = outro && block.get_unique_name(`${this.var.name}_outro`);
+		} else {
+			const intro_name =
+				intro && block.get_unique_name(`${this.var.name}_intro`);
+			const outro_name =
+				outro && block.get_unique_name(`${this.var.name}_outro`);
 
 			if (intro) {
 				block.add_variable(intro_name);
@@ -783,7 +840,9 @@ export default class ElementWrapper extends Wrapper {
 						});
 					`;
 
-					block.chunks.outro.push(b`if (${intro_name}) ${intro_name}.invalidate();`);
+					block.chunks.outro.push(
+						b`if (${intro_name}) ${intro_name}.invalidate();`
+					);
 				} else {
 					intro_block = b`
 						if (!${intro_name}) {
@@ -836,7 +895,9 @@ export default class ElementWrapper extends Wrapper {
 
 				block.chunks.outro.push(outro_block);
 
-				block.chunks.destroy.push(b`if (detaching && ${outro_name}) ${outro_name}.end();`);
+				block.chunks.destroy.push(
+					b`if (detaching && ${outro_name}) ${outro_name}.end();`
+				);
 			}
 		}
 	}
@@ -862,7 +923,9 @@ export default class ElementWrapper extends Wrapper {
 			${outro && b`@add_transform(${this.var}, ${rect});`}
 		`);
 
-		const params = this.node.animation.expression ? this.node.animation.expression.manipulate(block) : x`{}`;
+		const params = this.node.animation.expression
+			? this.node.animation.expression.manipulate(block)
+			: x`{}`;
 
 		const name = this.renderer.reference(this.node.animation.name);
 
@@ -891,8 +954,13 @@ export default class ElementWrapper extends Wrapper {
 
 			if (has_spread) {
 				block.chunks.update.push(updater);
-			} else if ((dependencies && dependencies.size > 0) || this.class_dependencies.length) {
-				const all_dependencies = this.class_dependencies.concat(...dependencies);
+			} else if (
+				(dependencies && dependencies.size > 0) ||
+				this.class_dependencies.length
+			) {
+				const all_dependencies = this.class_dependencies.concat(
+					...dependencies
+				);
 				const condition = block.renderer.dirty(all_dependencies);
 
 				block.chunks.update.push(b`
@@ -912,66 +980,81 @@ export default class ElementWrapper extends Wrapper {
 	}
 }
 
-function to_html(wrappers: Array<ElementWrapper | TextWrapper | TagWrapper>, block: Block, literal: any, state: any, can_use_raw_text?: boolean) {
+function to_html(
+	wrappers: Array<ElementWrapper | TextWrapper | TagWrapper>,
+	block: Block,
+	literal: any,
+	state: any,
+	can_use_raw_text?: boolean
+) {
 	wrappers.forEach(wrapper => {
 		if (wrapper.node.type === 'Text') {
 			if ((wrapper as TextWrapper).use_space()) state.quasi.value.raw += ' ';
 
 			const parent = wrapper.node.parent as Element;
 
-			const raw = parent && (
-				parent.name === 'script' ||
-				parent.name === 'style' ||
-				can_use_raw_text
-			);
+			const raw =
+				parent &&
+				(parent.name === 'script' ||
+					parent.name === 'style' ||
+					can_use_raw_text);
 
-			state.quasi.value.raw += (raw ? wrapper.node.data : escape_html(wrapper.node.data))
+			state.quasi.value.raw += (raw
+				? wrapper.node.data
+				: escape_html(wrapper.node.data)
+			)
 				.replace(/\\/g, '\\\\')
 				.replace(/`/g, '\\`')
 				.replace(/\$/g, '\\$');
-		}
-
-		else if (wrapper.node.type === 'MustacheTag' || wrapper.node.type === 'RawMustacheTag' ) {
+		} else if (
+			wrapper.node.type === 'MustacheTag' ||
+			wrapper.node.type === 'RawMustacheTag'
+		) {
 			literal.quasis.push(state.quasi);
 			literal.expressions.push(wrapper.node.expression.manipulate(block));
 			state.quasi = {
 				type: 'TemplateElement',
-				value: { raw: '' }
+				value: { raw: '' },
 			};
-		}
-
-		else if (wrapper.node.name === 'noscript') {
+		} else if (wrapper.node.name === 'noscript') {
 			// do nothing
-		}
-
-		else {
+		} else {
 			// element
 			state.quasi.value.raw += `<${wrapper.node.name}`;
 
-			(wrapper as ElementWrapper).attributes.forEach((attr: AttributeWrapper) => {
-				state.quasi.value.raw += ` ${fix_attribute_casing(attr.node.name)}="`;
+			(wrapper as ElementWrapper).attributes.forEach(
+				(attr: AttributeWrapper) => {
+					state.quasi.value.raw += ` ${fix_attribute_casing(attr.node.name)}="`;
 
-				attr.node.chunks.forEach(chunk => {
-					if (chunk.type === 'Text') {
-						state.quasi.value.raw += escape_html(chunk.data);
-					} else {
-						literal.quasis.push(state.quasi);
-						literal.expressions.push(chunk.manipulate(block));
+					attr.node.chunks.forEach(chunk => {
+						if (chunk.type === 'Text') {
+							state.quasi.value.raw += escape_html(chunk.data);
+						} else {
+							literal.quasis.push(state.quasi);
+							literal.expressions.push(chunk.manipulate(block));
 
-						state.quasi = {
-							type: 'TemplateElement',
-							value: { raw: '' }
-						};
-					}
-				});
+							state.quasi = {
+								type: 'TemplateElement',
+								value: { raw: '' },
+							};
+						}
+					});
 
-				state.quasi.value.raw += `"`;
-			});
+					state.quasi.value.raw += `"`;
+				}
+			);
 
 			state.quasi.value.raw += '>';
 
 			if (!(wrapper as ElementWrapper).void) {
-				to_html((wrapper as ElementWrapper).fragment.nodes as Array<ElementWrapper | TextWrapper>, block, literal, state);
+				to_html(
+					(wrapper as ElementWrapper).fragment.nodes as Array<
+						ElementWrapper | TextWrapper
+					>,
+					block,
+					literal,
+					state
+				);
 
 				state.quasi.value.raw += `</${wrapper.node.name}>`;
 			}

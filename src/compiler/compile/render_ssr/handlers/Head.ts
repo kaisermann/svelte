@@ -2,10 +2,14 @@ import Renderer, { RenderOptions } from '../Renderer';
 import Head from '../../nodes/Head';
 import { x } from 'code-red';
 
-export default function(node: Head, renderer: Renderer, options: RenderOptions) {
+export default function(
+	node: Head,
+	renderer: Renderer,
+	options: RenderOptions
+) {
 	const head_options = {
 		...options,
-		head_id: node.id
+		head_id: node.id,
 	};
 
 	renderer.push();

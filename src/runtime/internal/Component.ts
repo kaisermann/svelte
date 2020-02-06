@@ -1,11 +1,16 @@
-import { add_render_callback, flush, schedule_update, dirty_components } from './scheduler';
+import {
+	add_render_callback,
+	flush,
+	schedule_update,
+	dirty_components,
+} from './scheduler';
 import { current_component, set_current_component } from './lifecycle';
 import { blank_object, is_function, run, run_all, noop } from './utils';
 import { children } from './dom';
 import { transition_in } from './transitions';
 
 interface Fragment {
-	key: string|null;
+	key: string | null;
 	first: null;
 	/* create  */ c: () => void;
 	/* claim   */ l: (nodes: any) => void;
@@ -17,18 +22,18 @@ interface Fragment {
 	/* animate */ a: () => void;
 	/* intro   */ i: (local: any) => void;
 	/* outro   */ o: (local: any) => void;
-	/* destroy */ d: (detaching: 0|1) => void;
+	/* destroy */ d: (detaching: 0 | 1) => void;
 }
 // eslint-disable-next-line @typescript-eslint/class-name-casing
 interface T$$ {
 	dirty: number[];
-	ctx: null|any;
+	ctx: null | any;
 	bound: any;
 	update: () => void;
 	callbacks: any;
 	after_update: any[];
 	props: Record<string, 0 | string>;
-	fragment: null|false|Fragment;
+	fragment: null | false | Fragment;
 	not_equal: any;
 	before_update: any[];
 	context: Map<any, any>;
@@ -93,16 +98,24 @@ function make_dirty(component, i) {
 		schedule_update();
 		component.$$.dirty.fill(0);
 	}
-	component.$$.dirty[(i / 31) | 0] |= (1 << (i % 31));
+	component.$$.dirty[(i / 31) | 0] |= 1 << i % 31;
 }
 
-export function init(component, options, instance, create_fragment, not_equal, props, dirty = [-1]) {
+export function init(
+	component,
+	options,
+	instance,
+	create_fragment,
+	not_equal,
+	props,
+	dirty = [-1]
+) {
 	const parent_component = current_component;
 	set_current_component(component);
 
 	const prop_values = options.props || {};
 
-	const $$: T$$ = component.$$ = {
+	const $$: T$$ = (component.$$ = {
 		fragment: null,
 		ctx: null,
 
@@ -121,20 +134,20 @@ export function init(component, options, instance, create_fragment, not_equal, p
 
 		// everything else
 		callbacks: blank_object(),
-		dirty
-	};
+		dirty,
+	});
 
 	let ready = false;
 
 	$$.ctx = instance
 		? instance(component, prop_values, (i, ret, ...rest) => {
-			const value = rest.length ? rest[0] : ret;
-			if ($$.ctx && not_equal($$.ctx[i], $$.ctx[i] = value)) {
-				if ($$.bound[i]) $$.bound[i](value);
-				if (ready) make_dirty(component, i);
-			}
-			return ret;
-		})
+				const value = rest.length ? rest[0] : ret;
+				if ($$.ctx && not_equal($$.ctx[i], ($$.ctx[i] = value))) {
+					if ($$.bound[i]) $$.bound[i](value);
+					if (ready) make_dirty(component, i);
+				}
+				return ret;
+		  })
 		: [];
 
 	$$.update();
@@ -189,7 +202,8 @@ if (typeof HTMLElement === 'function') {
 
 		$on(type, callback) {
 			// TODO should this delegate to addEventListener?
-			const callbacks = (this.$$.callbacks[type] || (this.$$.callbacks[type] = []));
+			const callbacks =
+				this.$$.callbacks[type] || (this.$$.callbacks[type] = []);
 			callbacks.push(callback);
 
 			return () => {
@@ -213,7 +227,7 @@ export class SvelteComponent {
 	}
 
 	$on(type, callback) {
-		const callbacks = (this.$$.callbacks[type] || (this.$$.callbacks[type] = []));
+		const callbacks = this.$$.callbacks[type] || (this.$$.callbacks[type] = []);
 		callbacks.push(callback);
 
 		return () => {

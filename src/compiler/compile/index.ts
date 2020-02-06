@@ -26,7 +26,7 @@ const valid_options = [
 	'css',
 	'loopGuardTimeout',
 	'preserveComments',
-	'preserveWhitespace'
+	'preserveWhitespace',
 ];
 
 function validate_options(options: CompileOptions, warnings: Warning[]) {
@@ -90,9 +90,10 @@ export default function compile(source: string, options: CompileOptions = {}) {
 	);
 	stats.stop('create component');
 
-	const result = options.generate === false
-		? null
-		: options.generate === 'ssr'
+	const result =
+		options.generate === false
+			? null
+			: options.generate === 'ssr'
 			? render_ssr(component, options)
 			: render_dom(component, options);
 

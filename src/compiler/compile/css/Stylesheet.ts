@@ -5,7 +5,7 @@ import Element from '../nodes/Element';
 import { Ast, TemplateNode } from '../../interfaces';
 import Component from '../Component';
 import { CssNode } from './interfaces';
-import hash from "../utils/hash";
+import hash from '../utils/hash';
 
 function remove_css_prefix(name: string): string {
 	return name.replace(/^-((webkit)|(moz)|(o)|(ms))-/, '');
@@ -28,7 +28,7 @@ function minify_declarations(
 
 	declarations.forEach((declaration, i) => {
 		const separator = i > 0 ? ';' : '';
-		if ((declaration.node.start - c) > separator.length) {
+		if (declaration.node.start - c > separator.length) {
 			code.overwrite(c, declaration.node.start, separator);
 		}
 		declaration.minify(code);
@@ -47,8 +47,12 @@ class Rule {
 	constructor(node: CssNode, stylesheet, parent?: Atrule) {
 		this.node = node;
 		this.parent = parent;
-		this.selectors = node.selector.children.map((node: CssNode) => new Selector(node, stylesheet));
-		this.declarations = node.block.children.map((node: CssNode) => new Declaration(node));
+		this.selectors = node.selector.children.map(
+			(node: CssNode) => new Selector(node, stylesheet)
+		);
+		this.declarations = node.block.children.map(
+			(node: CssNode) => new Declaration(node)
+		);
 	}
 
 	apply(node: Element, stack: Element[]) {
@@ -56,7 +60,12 @@ class Rule {
 	}
 
 	is_used(dev: boolean) {
-		if (this.parent && this.parent.node.type === 'Atrule' && is_keyframes_node(this.parent.node)) return true;
+		if (
+			this.parent &&
+			this.parent.node.type === 'Atrule' &&
+			is_keyframes_node(this.parent.node)
+		)
+			return true;
 		if (this.declarations.length === 0) return dev;
 		return this.selectors.some(s => s.used);
 	}
@@ -65,10 +74,10 @@ class Rule {
 		let c = this.node.start;
 		let started = false;
 
-		this.selectors.forEach((selector) => {
+		this.selectors.forEach(selector => {
 			if (selector.used) {
 				const separator = started ? ',' : '';
-				if ((selector.node.start - c) > separator.length) {
+				if (selector.node.start - c > separator.length) {
 					code.overwrite(c, selector.node.start, separator);
 				}
 
@@ -87,13 +96,27 @@ class Rule {
 		code.remove(c, this.node.block.end - 1);
 	}
 
-	transform(code: MagicString, id: string, keyframes: Map<string, string>, max_amount_class_specificity_increased: number) {
-		if (this.parent && this.parent.node.type === 'Atrule' && is_keyframes_node(this.parent.node)) return true;
+	transform(
+		code: MagicString,
+		id: string,
+		keyframes: Map<string, string>,
+		max_amount_class_specificity_increased: number
+	) {
+		if (
+			this.parent &&
+			this.parent.node.type === 'Atrule' &&
+			is_keyframes_node(this.parent.node)
+		)
+			return true;
 
 		const attr = `.${id}`;
 
-		this.selectors.forEach(selector => selector.transform(code, attr, max_amount_class_specificity_increased));
-		this.declarations.forEach(declaration => declaration.transform(code, keyframes));
+		this.selectors.forEach(selector =>
+			selector.transform(code, attr, max_amount_class_specificity_increased)
+		);
+		this.declarations.forEach(declaration =>
+			declaration.transform(code, keyframes)
+		);
 	}
 
 	validate(component: Component) {
@@ -109,7 +132,11 @@ class Rule {
 	}
 
 	get_max_amount_class_specificity_increased() {
-		return Math.max(...this.selectors.map(selector => selector.get_amount_class_specificity_increased()));
+		return Math.max(
+			...this.selectors.map(selector =>
+				selector.get_amount_class_specificity_increased()
+			)
+		);
 	}
 }
 
@@ -121,7 +148,8 @@ class Declaration {
 	}
 
 	transform(code: MagicString, keyframes: Map<string, string>) {
-		const property = this.node.property && remove_css_prefix(this.node.property.toLowerCase());
+		const property =
+			this.node.property && remove_css_prefix(this.node.property.toLowerCase());
 		if (property === 'animation' || property === 'animation-name') {
 			this.node.value.children.forEach((block: CssNode) => {
 				if (block.type === 'Identifier') {
@@ -153,7 +181,7 @@ class Declaration {
 
 class Atrule {
 	node: CssNode;
-	children: Array<Atrule|Rule>;
+	children: Array<Atrule | Rule>;
 	declarations: Declaration[];
 
 	constructor(node: CssNode) {
@@ -167,9 +195,7 @@ class Atrule {
 			this.children.forEach(child => {
 				child.apply(node, stack);
 			});
-		}
-
-		else if (is_keyframes_node(this.node)) {
+		} else if (is_keyframes_node(this.node)) {
 			this.children.forEach((rule: Rule) => {
 				rule.selectors.forEach(selector => {
 					selector.used = true;
@@ -186,7 +212,8 @@ class Atrule {
 		if (this.node.name === 'media') {
 			const expression_char = code.original[this.node.expression.start];
 			let c = this.node.start + (expression_char === '(' ? 6 : 7);
-			if (this.node.expression.start > c) code.remove(c, this.node.expression.start);
+			if (this.node.expression.start > c)
+				code.remove(c, this.node.expression.start);
 
 			this.node.expression.children.forEach((query: CssNode) => {
 				// TODO minify queries
@@ -196,7 +223,8 @@ class Atrule {
 			code.remove(c, this.node.block.start);
 		} else if (this.node.name === 'supports') {
 			let c = this.node.start + 9;
-			if (this.node.expression.start - c > 1) code.overwrite(c, this.node.expression.start, ' ');
+			if (this.node.expression.start - c > 1)
+				code.overwrite(c, this.node.expression.start, ' ');
 			this.node.expression.children.forEach((query: CssNode) => {
 				// TODO minify queries
 				c = query.end;
@@ -205,7 +233,8 @@ class Atrule {
 		} else {
 			let c = this.node.start + this.node.name.length + 1;
 			if (this.node.expression) {
-				if (this.node.expression.start - c > 1) code.overwrite(c, this.node.expression.start, ' ');
+				if (this.node.expression.start - c > 1)
+					code.overwrite(c, this.node.expression.start, ' ');
 				c = this.node.expression.end;
 			}
 			if (this.node.block && this.node.block.start - c > 0) {
@@ -235,26 +264,38 @@ class Atrule {
 		}
 	}
 
-	transform(code: MagicString, id: string, keyframes: Map<string, string>, max_amount_class_specificity_increased: number) {
+	transform(
+		code: MagicString,
+		id: string,
+		keyframes: Map<string, string>,
+		max_amount_class_specificity_increased: number
+	) {
 		if (is_keyframes_node(this.node)) {
-			this.node.expression.children.forEach(({ type, name, start, end }: CssNode) => {
-				if (type === 'Identifier') {
-					if (name.startsWith('-global-')) {
-						code.remove(start, start + 8);
-						this.children.forEach((rule: Rule) => {
-							rule.selectors.forEach(selector => {
-								selector.used = true;
+			this.node.expression.children.forEach(
+				({ type, name, start, end }: CssNode) => {
+					if (type === 'Identifier') {
+						if (name.startsWith('-global-')) {
+							code.remove(start, start + 8);
+							this.children.forEach((rule: Rule) => {
+								rule.selectors.forEach(selector => {
+									selector.used = true;
+								});
 							});
-						});
-					} else {
-						code.overwrite(start, end, keyframes.get(name));
+						} else {
+							code.overwrite(start, end, keyframes.get(name));
+						}
 					}
 				}
-			});
+			);
 		}
 
 		this.children.forEach(child => {
-			child.transform(code, id, keyframes, max_amount_class_specificity_increased);
+			child.transform(
+				code,
+				id,
+				keyframes,
+				max_amount_class_specificity_increased
+			);
 		});
 	}
 
@@ -273,7 +314,11 @@ class Atrule {
 	}
 
 	get_max_amount_class_specificity_increased() {
-		return Math.max(...this.children.map(rule => rule.get_max_amount_class_specificity_increased()));
+		return Math.max(
+			...this.children.map(rule =>
+				rule.get_max_amount_class_specificity_increased()
+			)
+		);
 	}
 }
 
@@ -286,7 +331,7 @@ export default class Stylesheet {
 	has_styles: boolean;
 	id: string;
 
-	children: Array<Rule|Atrule> = [];
+	children: Array<Rule | Atrule> = [];
 	keyframes: Map<string, string> = new Map();
 
 	nodes_with_css_class: Set<CssNode> = new Set();
@@ -320,8 +365,14 @@ export default class Stylesheet {
 
 						if (is_keyframes_node(node)) {
 							node.expression.children.forEach((expression: CssNode) => {
-								if (expression.type === 'Identifier' && !expression.name.startsWith('-global-')) {
-									this.keyframes.set(expression.name, `${this.id}-${expression.name}`);
+								if (
+									expression.type === 'Identifier' &&
+									!expression.name.startsWith('-global-')
+								) {
+									this.keyframes.set(
+										expression.name,
+										`${this.id}-${expression.name}`
+									);
 								}
 							});
 						} else if (at_rule_has_declaration(node)) {
@@ -354,7 +405,7 @@ export default class Stylesheet {
 					}
 
 					depth -= 1;
-				}
+				},
 			});
 		} else {
 			this.has_styles = false;
@@ -366,7 +417,7 @@ export default class Stylesheet {
 
 		const stack: Element[] = [];
 		let parent: TemplateNode = node;
-		while (parent = parent.parent) {
+		while ((parent = parent.parent)) {
 			if (parent.type === 'Element') stack.unshift(parent as Element);
 		}
 
@@ -393,12 +444,16 @@ export default class Stylesheet {
 			enter: (node: any) => {
 				code.addSourcemapLocation(node.start);
 				code.addSourcemapLocation(node.end);
-			}
+			},
 		});
 
 		if (should_transform_selectors) {
-			const max = Math.max(...this.children.map(rule => rule.get_max_amount_class_specificity_increased()));
-			this.children.forEach((child: (Atrule|Rule)) => {
+			const max = Math.max(
+				...this.children.map(rule =>
+					rule.get_max_amount_class_specificity_increased()
+				)
+			);
+			this.children.forEach((child: Atrule | Rule) => {
 				child.transform(code, this.id, this.keyframes, max);
 			});
 		}
@@ -419,8 +474,8 @@ export default class Stylesheet {
 			map: code.generateMap({
 				includeContent: true,
 				source: this.filename,
-				file
-			})
+				file,
+			}),
 		};
 	}
 
@@ -435,7 +490,7 @@ export default class Stylesheet {
 			child.warn_on_unused_selector((selector: Selector) => {
 				component.warn(selector.node, {
 					code: `css-unused-selector`,
-					message: `Unused CSS selector`
+					message: `Unused CSS selector`,
 				});
 			});
 		});

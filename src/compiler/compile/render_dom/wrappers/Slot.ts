@@ -50,11 +50,7 @@ export default class SlotWrapper extends Wrapper {
 		block.add_outro();
 	}
 
-	render(
-		block: Block,
-		parent_node: Identifier,
-		parent_nodes: Identifier
-	) {
+	render(block: Block, parent_node: Identifier, parent_nodes: Identifier) {
 		const { renderer } = this;
 
 		const { slot_name } = this.node;
@@ -63,8 +59,12 @@ export default class SlotWrapper extends Wrapper {
 		let get_slot_context_fn;
 
 		if (this.node.values.size > 0) {
-			get_slot_changes_fn = renderer.component.get_unique_name(`get_${sanitize(slot_name)}_slot_changes`);
-			get_slot_context_fn = renderer.component.get_unique_name(`get_${sanitize(slot_name)}_slot_context`);
+			get_slot_changes_fn = renderer.component.get_unique_name(
+				`get_${sanitize(slot_name)}_slot_changes`
+			);
+			get_slot_context_fn = renderer.component.get_unique_name(
+				`get_${sanitize(slot_name)}_slot_context`
+			);
 
 			const changes = x`{}` as ObjectExpression;
 
@@ -73,7 +73,10 @@ export default class SlotWrapper extends Wrapper {
 			this.node.values.forEach(attribute => {
 				attribute.chunks.forEach(chunk => {
 					if ((chunk as Expression).dependencies) {
-						add_to_set(dependencies, (chunk as Expression).contextual_dependencies);
+						add_to_set(
+							dependencies,
+							(chunk as Expression).contextual_dependencies
+						);
 
 						// add_to_set(dependencies, (chunk as Expression).dependencies);
 						(chunk as Expression).dependencies.forEach(name => {
@@ -83,20 +86,27 @@ export default class SlotWrapper extends Wrapper {
 					}
 				});
 
-				const dynamic_dependencies = Array.from(attribute.dependencies).filter(name => {
-					if (this.node.scope.is_let(name)) return true;
-					const variable = renderer.component.var_lookup.get(name);
-					return is_dynamic(variable);
-				});
+				const dynamic_dependencies = Array.from(attribute.dependencies).filter(
+					name => {
+						if (this.node.scope.is_let(name)) return true;
+						const variable = renderer.component.var_lookup.get(name);
+						return is_dynamic(variable);
+					}
+				);
 
 				if (dynamic_dependencies.length > 0) {
-					changes.properties.push(p`${attribute.name}: ${renderer.dirty(dynamic_dependencies)}`);
+					changes.properties.push(
+						p`${attribute.name}: ${renderer.dirty(dynamic_dependencies)}`
+					);
 				}
 			});
 
 			renderer.blocks.push(b`
 				const ${get_slot_changes_fn} = #dirty => ${changes};
-				const ${get_slot_context_fn} = #ctx => ${get_slot_data(this.node.values, block)};
+				const ${get_slot_context_fn} = #ctx => ${get_slot_data(
+				this.node.values,
+				block
+			)};
 			`);
 		} else {
 			get_slot_changes_fn = 'null';
@@ -104,11 +114,15 @@ export default class SlotWrapper extends Wrapper {
 		}
 
 		const slot = block.get_unique_name(`${sanitize(slot_name)}_slot`);
-		const slot_definition = block.get_unique_name(`${sanitize(slot_name)}_slot_template`);
+		const slot_definition = block.get_unique_name(
+			`${sanitize(slot_name)}_slot_template`
+		);
 
 		block.chunks.init.push(b`
 			const ${slot_definition} = ${renderer.reference('$$slots')}.${slot_name};
-			const ${slot} = @create_slot(${slot_definition}, #ctx, ${renderer.reference('$$scope')}, ${get_slot_context_fn});
+			const ${slot} = @create_slot(${slot_definition}, #ctx, ${renderer.reference(
+			'$$scope'
+		)}, ${get_slot_context_fn});
 		`);
 
 		// TODO this is a dreadful hack! Should probably make this nicer
@@ -127,12 +141,18 @@ export default class SlotWrapper extends Wrapper {
 		block.render_listeners(`_${slot.name}`);
 		block.event_listeners = listeners;
 
-		if (block.chunks.create.length) create.push(b`if (!${slot}) { ${block.chunks.create} }`);
-		if (block.chunks.claim.length) claim.push(b`if (!${slot}) { ${block.chunks.claim} }`);
-		if (block.chunks.hydrate.length) hydrate.push(b`if (!${slot}) { ${block.chunks.hydrate} }`);
-		if (block.chunks.mount.length) mount.push(b`if (!${slot}) { ${block.chunks.mount} }`);
-		if (block.chunks.update.length) update.push(b`if (!${slot}) { ${block.chunks.update} }`);
-		if (block.chunks.destroy.length) destroy.push(b`if (!${slot}) { ${block.chunks.destroy} }`);
+		if (block.chunks.create.length)
+			create.push(b`if (!${slot}) { ${block.chunks.create} }`);
+		if (block.chunks.claim.length)
+			claim.push(b`if (!${slot}) { ${block.chunks.claim} }`);
+		if (block.chunks.hydrate.length)
+			hydrate.push(b`if (!${slot}) { ${block.chunks.hydrate} }`);
+		if (block.chunks.mount.length)
+			mount.push(b`if (!${slot}) { ${block.chunks.mount} }`);
+		if (block.chunks.update.length)
+			update.push(b`if (!${slot}) { ${block.chunks.update} }`);
+		if (block.chunks.destroy.length)
+			destroy.push(b`if (!${slot}) { ${block.chunks.destroy} }`);
 
 		block.chunks.create = create;
 		block.chunks.claim = claim;
@@ -141,14 +161,10 @@ export default class SlotWrapper extends Wrapper {
 		block.chunks.update = update;
 		block.chunks.destroy = destroy;
 
-		block.chunks.create.push(
-			b`if (${slot}) ${slot}.c();`
-		);
+		block.chunks.create.push(b`if (${slot}) ${slot}.c();`);
 
 		if (renderer.options.hydratable) {
-			block.chunks.claim.push(
-				b`if (${slot}) ${slot}.l(${parent_nodes});`
-			);
+			block.chunks.claim.push(b`if (${slot}) ${slot}.l(${parent_nodes});`);
 		}
 
 		block.chunks.mount.push(b`
@@ -157,13 +173,9 @@ export default class SlotWrapper extends Wrapper {
 			}
 		`);
 
-		block.chunks.intro.push(
-			b`@transition_in(${slot}, #local);`
-		);
+		block.chunks.intro.push(b`@transition_in(${slot}, #local);`);
 
-		block.chunks.outro.push(
-			b`@transition_out(${slot}, #local);`
-		);
+		block.chunks.outro.push(b`@transition_out(${slot}, #local);`);
 
 		const dynamic_dependencies = Array.from(this.dependencies).filter(name => {
 			if (name === '$$scope') return true;
@@ -175,14 +187,16 @@ export default class SlotWrapper extends Wrapper {
 		block.chunks.update.push(b`
 			if (${slot} && ${slot}.p && ${renderer.dirty(dynamic_dependencies)}) {
 				${slot}.p(
-					@get_slot_context(${slot_definition}, #ctx, ${renderer.reference('$$scope')}, ${get_slot_context_fn}),
-					@get_slot_changes(${slot_definition}, ${renderer.reference('$$scope')}, #dirty, ${get_slot_changes_fn})
+					@get_slot_context(${slot_definition}, #ctx, ${renderer.reference(
+			'$$scope'
+		)}, ${get_slot_context_fn}),
+					@get_slot_changes(${slot_definition}, ${renderer.reference(
+			'$$scope'
+		)}, #dirty, ${get_slot_changes_fn})
 				);
 			}
 		`);
 
-		block.chunks.destroy.push(
-			b`if (${slot}) ${slot}.d(detaching);`
-		);
+		block.chunks.destroy.push(b`if (${slot}) ${slot}.d(detaching);`);
 	}
 }

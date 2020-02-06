@@ -33,7 +33,6 @@ export function add_flush_callback(fn) {
 
 const seen_callbacks = new Set();
 export function flush() {
-
 	do {
 		// first, call beforeUpdate functions
 		// and update components

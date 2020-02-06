@@ -21,16 +21,19 @@ export type Preprocessor = (options: {
 
 function parse_attributes(str: string) {
 	const attrs = {};
-	str.split(/\s+/).filter(Boolean).forEach(attr => {
-		const p = attr.indexOf('=');
-		if (p === -1) {
-			attrs[attr] = true;
-		} else {
-			attrs[attr.slice(0, p)] = `'"`.includes(attr[p + 1]) ?
-				attr.slice(p + 2, -1) :
-				attr.slice(p + 1);
-		}
-	});
+	str
+		.split(/\s+/)
+		.filter(Boolean)
+		.forEach(attr => {
+			const p = attr.indexOf('=');
+			if (p === -1) {
+				attrs[attr] = true;
+			} else {
+				attrs[attr.slice(0, p)] = `'"`.includes(attr[p + 1])
+					? attr.slice(p + 2, -1)
+					: attr.slice(p + 1);
+			}
+		});
 	return attrs;
 }
 
@@ -40,7 +43,11 @@ interface Replacement {
 	replacement: string;
 }
 
-async function replace_async(str: string, re: RegExp, func: (...any) => Promise<string>) {
+async function replace_async(
+	str: string,
+	re: RegExp,
+	func: (...any) => Promise<string>
+) {
 	const replacements: Array<Promise<Replacement>> = [];
 	str.replace(re, (...args) => {
 		replacements.push(
@@ -50,7 +57,7 @@ async function replace_async(str: string, re: RegExp, func: (...any) => Promise<
 						offset: args[args.length - 2],
 						length: args[0].length,
 						replacement: res,
-					}) as Replacement
+					} as Replacement)
 			)
 		);
 		return '';
@@ -76,7 +83,9 @@ export default async function preprocess(
 	const filename = (options && options.filename) || preprocessor.filename; // legacy
 	const dependencies = [];
 
-	const preprocessors = Array.isArray(preprocessor) ? preprocessor : [preprocessor];
+	const preprocessors = Array.isArray(preprocessor)
+		? preprocessor
+		: [preprocessor];
 
 	const markup = preprocessors.map(p => p.markup).filter(Boolean);
 	const script = preprocessors.map(p => p.script).filter(Boolean);
@@ -85,9 +94,10 @@ export default async function preprocess(
 	for (const fn of markup) {
 		const processed = await fn({
 			content: source,
-			filename
+			filename,
 		});
-		if (processed && processed.dependencies) dependencies.push(...processed.dependencies);
+		if (processed && processed.dependencies)
+			dependencies.push(...processed.dependencies);
 		source = processed ? processed.code : source;
 	}
 
@@ -103,10 +113,13 @@ export default async function preprocess(
 				const processed = await fn({
 					content,
 					attributes: parse_attributes(attributes),
-					filename
+					filename,
 				});
-				if (processed && processed.dependencies) dependencies.push(...processed.dependencies);
-				return processed ? `<script${attributes}>${processed.code}</script>` : match;
+				if (processed && processed.dependencies)
+					dependencies.push(...processed.dependencies);
+				return processed
+					? `<script${attributes}>${processed.code}</script>`
+					: match;
 			}
 		);
 	}
@@ -122,10 +135,13 @@ export default async function preprocess(
 				const processed: Processed = await fn({
 					content,
 					attributes: parse_attributes(attributes),
-					filename
+					filename,
 				});
-				if (processed && processed.dependencies) dependencies.push(...processed.dependencies);
-				return processed ? `<style${attributes}>${processed.code}</style>` : match;
+				if (processed && processed.dependencies)
+					dependencies.push(...processed.dependencies);
+				return processed
+					? `<style${attributes}>${processed.code}</style>`
+					: match;
 			}
 		);
 	}
@@ -141,6 +157,6 @@ export default async function preprocess(
 
 		toString() {
 			return source;
-		}
+		},
 	};
 }

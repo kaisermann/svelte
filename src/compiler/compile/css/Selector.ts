@@ -8,7 +8,7 @@ import Element from '../nodes/Element';
 enum BlockAppliesToNode {
 	NotPossible,
 	Possible,
-	UnknownSelectorType
+	UnknownSelectorType,
 }
 
 export default class Selector {
@@ -38,7 +38,12 @@ export default class Selector {
 	apply(node: Element, stack: Element[]) {
 		const to_encapsulate: any[] = [];
 
-		apply_selector(this.local_blocks.slice(), node, stack.slice(), to_encapsulate);
+		apply_selector(
+			this.local_blocks.slice(),
+			node,
+			stack.slice(),
+			to_encapsulate
+		);
 
 		if (to_encapsulate.length > 0) {
 			to_encapsulate.forEach(({ node, block }) => {
@@ -63,8 +68,14 @@ export default class Selector {
 		});
 	}
 
-	transform(code: MagicString, attr: string, max_amount_class_specificity_increased: number) {
-		const amount_class_specificity_to_increase = max_amount_class_specificity_increased - this.blocks.filter(block => block.should_encapsulate).length;
+	transform(
+		code: MagicString,
+		attr: string,
+		max_amount_class_specificity_increased: number
+	) {
+		const amount_class_specificity_to_increase =
+			max_amount_class_specificity_increased -
+			this.blocks.filter(block => block.should_encapsulate).length;
 		attr = attr.repeat(amount_class_specificity_to_increase + 1);
 
 		function encapsulate_block(block: Block) {
@@ -72,7 +83,10 @@ export default class Selector {
 
 			while (i--) {
 				const selector = block.selectors[i];
-				if (selector.type === 'PseudoElementSelector' || selector.type === 'PseudoClassSelector') {
+				if (
+					selector.type === 'PseudoElementSelector' ||
+					selector.type === 'PseudoClassSelector'
+				) {
 					if (selector.name !== 'root') {
 						if (i === 0) code.prependRight(selector.start, attr);
 					}
@@ -89,7 +103,7 @@ export default class Selector {
 			}
 		}
 
-		this.blocks.forEach((block) => {
+		this.blocks.forEach(block => {
 			if (block.global) {
 				const selector = block.selectors[0];
 				const first = selector.children[0];
@@ -102,14 +116,17 @@ export default class Selector {
 	}
 
 	validate(component: Component) {
-		this.blocks.forEach((block) => {
+		this.blocks.forEach(block => {
 			let i = block.selectors.length;
 			while (i-- > 1) {
 				const selector = block.selectors[i];
-				if (selector.type === 'PseudoClassSelector' && selector.name === 'global') {
+				if (
+					selector.type === 'PseudoClassSelector' &&
+					selector.name === 'global'
+				) {
 					component.error(selector, {
 						code: `css-invalid-global`,
-						message: `:global(...) must be the first element in a compound selector`
+						message: `:global(...) must be the first element in a compound selector`,
 					});
 				}
 			}
@@ -130,7 +147,7 @@ export default class Selector {
 			if (this.blocks[i].global) {
 				component.error(this.blocks[i].selectors[0], {
 					code: `css-invalid-global`,
-					message: `:global(...) can be at the start or end of a selector sequence, but not in the middle`
+					message: `:global(...) can be at the start or end of a selector sequence, but not in the middle`,
 				});
 			}
 		}
@@ -140,14 +157,19 @@ export default class Selector {
 		let count = 0;
 		for (const block of this.blocks) {
 			if (block.should_encapsulate) {
-				count ++;
+				count++;
 			}
 		}
 		return count;
 	}
 }
 
-function apply_selector(blocks: Block[], node: Element, stack: Element[], to_encapsulate: any[]): boolean {
+function apply_selector(
+	blocks: Block[],
+	node: Element,
+	stack: Element[],
+	to_encapsulate: any[]
+): boolean {
 	const block = blocks.pop();
 	if (!block) return false;
 
@@ -173,7 +195,10 @@ function apply_selector(blocks: Block[], node: Element, stack: Element[], to_enc
 				}
 
 				for (const stack_node of stack) {
-					if (block_might_apply_to_node(ancestor_block, stack_node) !== BlockAppliesToNode.NotPossible) {
+					if (
+						block_might_apply_to_node(ancestor_block, stack_node) !==
+						BlockAppliesToNode.NotPossible
+					) {
 						to_encapsulate.push({ node: stack_node, block: ancestor_block });
 					}
 				}
@@ -213,9 +238,14 @@ function block_might_apply_to_node(block, node): BlockAppliesToNode {
 
 	while (i--) {
 		const selector = block.selectors[i];
-		const name = typeof selector.name === 'string' && selector.name.replace(/\\(.)/g, '$1');
+		const name =
+			typeof selector.name === 'string' &&
+			selector.name.replace(/\\(.)/g, '$1');
 
-		if (selector.type === 'PseudoClassSelector' || selector.type === 'PseudoElementSelector') {
+		if (
+			selector.type === 'PseudoClassSelector' ||
+			selector.type === 'PseudoElementSelector'
+		) {
 			continue;
 		}
 
@@ -226,22 +256,29 @@ function block_might_apply_to_node(block, node): BlockAppliesToNode {
 		}
 
 		if (selector.type === 'ClassSelector') {
-			if (!attribute_matches(node, 'class', name, '~=', false) && !node.classes.some(c => c.name === name)) return BlockAppliesToNode.NotPossible;
-		}
-
-		else if (selector.type === 'IdSelector') {
-			if (!attribute_matches(node, 'id', name, '=', false)) return BlockAppliesToNode.NotPossible;
-		}
-
-		else if (selector.type === 'AttributeSelector') {
-			if (!attribute_matches(node, selector.name.name, selector.value && unquote(selector.value), selector.matcher, selector.flags)) return BlockAppliesToNode.NotPossible;
-		}
-
-		else if (selector.type === 'TypeSelector') {
-			if (node.name.toLowerCase() !== name.toLowerCase() && name !== '*') return BlockAppliesToNode.NotPossible;
-		}
-
-		else {
+			if (
+				!attribute_matches(node, 'class', name, '~=', false) &&
+				!node.classes.some(c => c.name === name)
+			)
+				return BlockAppliesToNode.NotPossible;
+		} else if (selector.type === 'IdSelector') {
+			if (!attribute_matches(node, 'id', name, '=', false))
+				return BlockAppliesToNode.NotPossible;
+		} else if (selector.type === 'AttributeSelector') {
+			if (
+				!attribute_matches(
+					node,
+					selector.name.name,
+					selector.value && unquote(selector.value),
+					selector.matcher,
+					selector.flags
+				)
+			)
+				return BlockAppliesToNode.NotPossible;
+		} else if (selector.type === 'TypeSelector') {
+			if (node.name.toLowerCase() !== name.toLowerCase() && name !== '*')
+				return BlockAppliesToNode.NotPossible;
+		} else {
 			return BlockAppliesToNode.UnknownSelectorType;
 		}
 	}
@@ -255,21 +292,35 @@ function test_attribute(operator, expected_value, case_insensitive, value) {
 		value = value.toLowerCase();
 	}
 	switch (operator) {
-		case '=': return value === expected_value;
-		case '~=': return value.split(/\s/).includes(expected_value);
-		case '|=': return `${value}-`.startsWith(`${expected_value}-`);
-		case '^=': return value.startsWith(expected_value);
-		case '$=': return value.endsWith(expected_value);
-		case '*=': return value.includes(expected_value);
-		default: throw new Error(`this shouldn't happen`);
+		case '=':
+			return value === expected_value;
+		case '~=':
+			return value.split(/\s/).includes(expected_value);
+		case '|=':
+			return `${value}-`.startsWith(`${expected_value}-`);
+		case '^=':
+			return value.startsWith(expected_value);
+		case '$=':
+			return value.endsWith(expected_value);
+		case '*=':
+			return value.includes(expected_value);
+		default:
+			throw new Error(`this shouldn't happen`);
 	}
 }
 
-function attribute_matches(node: CssNode, name: string, expected_value: string, operator: string, case_insensitive: boolean) {
+function attribute_matches(
+	node: CssNode,
+	name: string,
+	expected_value: string,
+	operator: string,
+	case_insensitive: boolean
+) {
 	const spread = node.attributes.find(attr => attr.type === 'Spread');
 	if (spread) return true;
 
-	if (node.bindings.some((binding: CssNode) => binding.name === name)) return true;
+	if (node.bindings.some((binding: CssNode) => binding.name === name))
+		return true;
 
 	const attr = node.attributes.find((attr: CssNode) => attr.name === name);
 	if (!attr) return false;
@@ -279,7 +330,13 @@ function attribute_matches(node: CssNode, name: string, expected_value: string, 
 	if (attr.chunks.length === 1) {
 		const value = attr.chunks[0];
 		if (!value) return false;
-		if (value.type === 'Text') return test_attribute(operator, expected_value, case_insensitive, value.data);
+		if (value.type === 'Text')
+			return test_attribute(
+				operator,
+				expected_value,
+				case_insensitive,
+				value.data
+			);
 	}
 
 	const possible_values = new Set();
@@ -355,7 +412,8 @@ function attribute_matches(node: CssNode, name: string, expected_value: string, 
 	if (possible_values.has(UNKNOWN)) return true;
 
 	for (const value of possible_values) {
-		if (test_attribute(operator, expected_value, case_insensitive, value)) return true;
+		if (test_attribute(operator, expected_value, case_insensitive, value))
+			return true;
 	}
 
 	return false;
@@ -364,7 +422,7 @@ function attribute_matches(node: CssNode, name: string, expected_value: string, 
 function unquote(value: CssNode) {
 	if (value.type === 'Identifier') return value.name;
 	const str = value.value;
-	if (str[0] === str[str.length - 1] && str[0] === "'" || str[0] === '"') {
+	if ((str[0] === str[str.length - 1] && str[0] === "'") || str[0] === '"') {
 		return str.slice(1, str.length - 1);
 	}
 	return str;
@@ -373,7 +431,7 @@ function unquote(value: CssNode) {
 class Block {
 	global: boolean;
 	combinator: CssNode;
-	selectors: CssNode[]
+	selectors: CssNode[];
 	start: number;
 	end: number;
 	should_encapsulate: boolean;
@@ -392,7 +450,8 @@ class Block {
 	add(selector: CssNode) {
 		if (this.selectors.length === 0) {
 			this.start = selector.start;
-			this.global = selector.type === 'PseudoClassSelector' && selector.name === 'global';
+			this.global =
+				selector.type === 'PseudoClassSelector' && selector.name === 'global';
 		}
 
 		this.selectors.push(selector);

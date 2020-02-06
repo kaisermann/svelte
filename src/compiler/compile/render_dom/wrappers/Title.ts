@@ -58,19 +58,18 @@ export default class TitleWrapper extends Wrapper {
 				}
 			}
 
-			const last = this.node.should_cache && block.get_unique_name(
-				`title_value`
-			);
+			const last =
+				this.node.should_cache && block.get_unique_name(`title_value`);
 
 			if (this.node.should_cache) block.add_variable(last);
 
 			const init = this.node.should_cache ? x`${last} = ${value}` : value;
 
-			block.chunks.init.push(
-				b`@_document.title = ${init};`
-			);
+			block.chunks.init.push(b`@_document.title = ${init};`);
 
-			const updater = b`@_document.title = ${this.node.should_cache ? last : value};`;
+			const updater = b`@_document.title = ${
+				this.node.should_cache ? last : value
+			};`;
 
 			if (all_dependencies.size) {
 				const dependencies = Array.from(all_dependencies);
@@ -91,9 +90,10 @@ export default class TitleWrapper extends Wrapper {
 					}`);
 			}
 		} else {
-			const value = this.node.children.length > 0
-				? string_literal((this.node.children[0] as Text).data)
-				: x`""`;
+			const value =
+				this.node.children.length > 0
+					? string_literal((this.node.children[0] as Text).data)
+					: x`""`;
 
 			block.chunks.hydrate.push(b`@_document.title = ${value};`);
 		}

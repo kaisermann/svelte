@@ -32,7 +32,7 @@ class AwaitBlockBranch extends Wrapper {
 		this.block = block.child({
 			comment: create_debugging_comment(node, this.renderer.component),
 			name: this.renderer.component.get_unique_name(`create_${status}_block`),
-			type: status
+			type: status,
 		});
 
 		this.fragment = new FragmentWrapper(
@@ -122,11 +122,7 @@ export default class AwaitBlockWrapper extends Wrapper {
 		}
 	}
 
-	render(
-		block: Block,
-		parent_node: Identifier,
-		parent_nodes: Identifier
-	) {
+	render(block: Block, parent_node: Identifier, parent_nodes: Identifier) {
 		const anchor = this.get_or_create_anchor(block, parent_node, parent_nodes);
 		const update_mount_node = this.get_update_mount_node(anchor);
 
@@ -139,8 +135,12 @@ export default class AwaitBlockWrapper extends Wrapper {
 
 		block.maintain_context = true;
 
-		const value_index = this.node.value && block.renderer.context_lookup.get(this.node.value).index;
-		const error_index = this.node.error && block.renderer.context_lookup.get(this.node.error).index;
+		const value_index =
+			this.node.value &&
+			block.renderer.context_lookup.get(this.node.value).index;
+		const error_index =
+			this.node.error &&
+			block.renderer.context_lookup.get(this.node.error).index;
 
 		const info_props: any = x`{
 			ctx: #ctx,
@@ -175,7 +175,9 @@ export default class AwaitBlockWrapper extends Wrapper {
 		const initial_mount_node = parent_node || '#target';
 		const anchor_node = parent_node ? 'null' : 'anchor';
 
-		const has_transitions = this.pending.block.has_intro_method || this.pending.block.has_outro_method;
+		const has_transitions =
+			this.pending.block.has_intro_method ||
+			this.pending.block.has_outro_method;
 
 		block.chunks.mount.push(b`
 			${info}.block.m(${initial_mount_node}, ${info}.anchor = ${anchor_node});
@@ -195,9 +197,7 @@ export default class AwaitBlockWrapper extends Wrapper {
 				${promise} !== (${promise} = ${snippet}) &&
 				@handle_promise(${promise}, ${info})`;
 
-			block.chunks.update.push(
-				b`${info}.ctx = #ctx;`
-			);
+			block.chunks.update.push(b`${info}.ctx = #ctx;`);
 
 			if (this.pending.block.has_update_method) {
 				block.chunks.update.push(b`

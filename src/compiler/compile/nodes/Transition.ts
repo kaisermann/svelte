@@ -17,19 +17,23 @@ export default class Transition extends Node {
 		this.name = info.name;
 		component.add_reference(info.name.split('.')[0]);
 
-		this.directive = info.intro && info.outro ? 'transition' : info.intro ? 'in' : 'out';
+		this.directive =
+			info.intro && info.outro ? 'transition' : info.intro ? 'in' : 'out';
 		this.is_local = info.modifiers.includes('local');
 
 		if ((info.intro && parent.intro) || (info.outro && parent.outro)) {
-			const parent_transition = (parent.intro || parent.outro);
+			const parent_transition = parent.intro || parent.outro;
 
-			const message = this.directive === parent_transition.directive
-				? `An element can only have one '${this.directive}' directive`
-				: `An element cannot have both ${describe(parent_transition)} directive and ${describe(this)} directive`;
+			const message =
+				this.directive === parent_transition.directive
+					? `An element can only have one '${this.directive}' directive`
+					: `An element cannot have both ${describe(
+							parent_transition
+					  )} directive and ${describe(this)} directive`;
 
 			component.error(info, {
 				code: `duplicate-transition`,
-				message
+				message,
 			});
 		}
 
