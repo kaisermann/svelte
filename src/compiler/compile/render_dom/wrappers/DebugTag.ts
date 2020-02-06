@@ -35,7 +35,7 @@ export default class DebugTagWrapper extends Wrapper {
 
 		const debug: DebuggerStatement = {
 			type: 'DebuggerStatement',
-			loc
+			loc,
 		};
 
 		if (this.node.expressions.length === 0) {
@@ -46,7 +46,7 @@ export default class DebugTagWrapper extends Wrapper {
 			const log: Identifier = {
 				type: 'Identifier',
 				name: 'log',
-				loc
+				loc,
 			};
 
 			const dependencies: Set<string> = new Set();
@@ -61,10 +61,14 @@ export default class DebugTagWrapper extends Wrapper {
 				})
 				.map(e => e.node.name);
 
-			const logged_identifiers = this.node.expressions.map(e => p`${e.node.name}`);
+			const logged_identifiers = this.node.expressions.map(
+				e => p`${e.node.name}`
+			);
 
 			const debug_statements = b`
-				${contextual_identifiers.map(name => b`const ${name} = ${renderer.reference(name)};`)}
+				${contextual_identifiers.map(
+					name => b`const ${name} = ${renderer.reference(name)};`
+				)}
 				@_console.${log}({ ${logged_identifiers} });
 				debugger;`;
 

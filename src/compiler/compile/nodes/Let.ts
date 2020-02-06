@@ -3,7 +3,12 @@ import Component from '../Component';
 import { walk } from 'estree-walker';
 import { Identifier } from 'estree';
 
-const applicable = new Set(['Identifier', 'ObjectExpression', 'ArrayExpression', 'Property']);
+const applicable = new Set([
+	'Identifier',
+	'ObjectExpression',
+	'ArrayExpression',
+	'Property',
+]);
 
 export default class Let extends Node {
 	type: 'Let';
@@ -26,7 +31,7 @@ export default class Let extends Node {
 					if (!applicable.has(node.type)) {
 						component.error(node as any, {
 							code: 'invalid-let',
-							message: `let directive value must be an identifier or an object/array pattern`
+							message: `let directive value must be an identifier or an object/array pattern`,
 						});
 					}
 
@@ -42,7 +47,7 @@ export default class Let extends Node {
 					if (node.type === 'ObjectExpression') {
 						(node as any).type = 'ObjectPattern';
 					}
-				}
+				},
 			});
 		} else {
 			names.push(this.name.name);

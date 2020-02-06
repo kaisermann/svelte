@@ -1,5 +1,8 @@
 import { is_void } from '../../../utils/names';
-import { get_attribute_value, get_class_attribute_value } from './shared/get_attribute_value';
+import {
+	get_attribute_value,
+	get_class_attribute_value,
+} from './shared/get_attribute_value';
 import { get_slot_scope } from './shared/get_slot_scope';
 import { boolean_attributes } from './shared/boolean_attributes';
 import Renderer, { RenderOptions } from '../Renderer';
@@ -7,17 +10,20 @@ import Element from '../../nodes/Element';
 import { x } from 'code-red';
 import Expression from '../../nodes/shared/Expression';
 
-export default function(node: Element, renderer: Renderer, options: RenderOptions & {
-	slot_scopes: Map<any, any>;
-}) {
+export default function(
+	node: Element,
+	renderer: Renderer,
+	options: RenderOptions & {
+		slot_scopes: Map<any, any>;
+	}
+) {
 	// awkward special case
 	let node_contents;
 
-	const contenteditable = (
+	const contenteditable =
 		node.name !== 'textarea' &&
 		node.name !== 'input' &&
-		node.attributes.some((attribute) => attribute.name === 'contenteditable')
-	);
+		node.attributes.some(attribute => attribute.name === 'contenteditable');
 
 	const slot = node.get_static_attribute_value('slot');
 	const nearest_inline_component = node.find_nearest(/InlineComponent/);
@@ -58,9 +64,15 @@ export default function(node: Element, renderer: Renderer, options: RenderOption
 					attribute.chunks[0].type !== 'Text'
 				) {
 					// a boolean attribute with one non-Text chunk
-					args.push(x`{ ${attribute.name}: ${(attribute.chunks[0] as Expression).node} || null }`);
+					args.push(
+						x`{ ${attribute.name}: ${
+							(attribute.chunks[0] as Expression).node
+						} || null }`
+					);
 				} else {
-					args.push(x`{ ${attribute.name}: ${get_attribute_value(attribute)} }`);
+					args.push(
+						x`{ ${attribute.name}: ${get_attribute_value(attribute)} }`
+					);
 				}
 			}
 		});
@@ -81,23 +93,44 @@ export default function(node: Element, renderer: Renderer, options: RenderOption
 			) {
 				// a boolean attribute with one non-Text chunk
 				renderer.add_string(` `);
-				renderer.add_expression(x`${(attribute.chunks[0] as Expression).node} ? "${attribute.name}" : ""`);
+				renderer.add_expression(
+					x`${(attribute.chunks[0] as Expression).node} ? "${
+						attribute.name
+					}" : ""`
+				);
 			} else if (name === 'class' && class_expression) {
 				add_class_attribute = false;
 				renderer.add_string(` ${attribute.name}="`);
-				renderer.add_expression(x`[${get_class_attribute_value(attribute)}, ${class_expression}].join(' ').trim()`);
+				renderer.add_expression(
+					x`[${get_class_attribute_value(
+						attribute
+					)}, ${class_expression}].join(' ').trim()`
+				);
 				renderer.add_string(`"`);
-			} else if (attribute.chunks.length === 1 && attribute.chunks[0].type !== 'Text') {
+			} else if (
+				attribute.chunks.length === 1 &&
+				attribute.chunks[0].type !== 'Text'
+			) {
 				const snippet = (attribute.chunks[0] as Expression).node;
-				renderer.add_expression(x`@add_attribute("${attribute.name}", ${snippet}, ${boolean_attributes.has(name) ? 1 : 0})`);
+				renderer.add_expression(
+					x`@add_attribute("${attribute.name}", ${snippet}, ${
+						boolean_attributes.has(name) ? 1 : 0
+					})`
+				);
 			} else {
 				renderer.add_string(` ${attribute.name}="`);
-				renderer.add_expression((name === 'class' ? get_class_attribute_value : get_attribute_value)(attribute));
+				renderer.add_expression(
+					(name === 'class' ? get_class_attribute_value : get_attribute_value)(
+						attribute
+					)
+				);
 				renderer.add_string(`"`);
 			}
 		});
 		if (add_class_attribute) {
-			renderer.add_expression(x`@add_classes([${class_expression}].join(' ').trim())`);
+			renderer.add_expression(
+				x`@add_classes([${class_expression}].join(' ').trim())`
+			);
 		}
 	}
 
@@ -110,7 +143,10 @@ export default function(node: Element, renderer: Renderer, options: RenderOption
 
 		if (name === 'group') {
 			// TODO server-render group bindings
-		} else if (contenteditable && (name === 'textContent' || name === 'innerHTML')) {
+		} else if (
+			contenteditable &&
+			(name === 'textContent' || name === 'innerHTML')
+		) {
 			node_contents = expression.node;
 
 			// TODO where was this used?
@@ -136,7 +172,9 @@ export default function(node: Element, renderer: Renderer, options: RenderOption
 			renderer.render(node.children, options);
 			const result = renderer.pop();
 
-			renderer.add_expression(x`($$value => $$value === void 0 ? ${result} : $$value)(${node_contents})`);
+			renderer.add_expression(
+				x`($$value => $$value === void 0 ? ${result} : $$value)(${node_contents})`
+			);
 		} else {
 			renderer.add_expression(node_contents);
 		}
@@ -160,7 +198,7 @@ export default function(node: Element, renderer: Renderer, options: RenderOption
 
 		options.slot_scopes.set(slot, {
 			input: get_slot_scope(node.lets),
-			output: renderer.pop()
+			output: renderer.pop(),
 		});
 	} else {
 		renderer.render(node.children, options);

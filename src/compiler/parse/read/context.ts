@@ -28,25 +28,31 @@ interface Context {
 
 function error_on_assignment_pattern(parser: Parser) {
 	if (parser.eat('=')) {
-		parser.error({
-			code: 'invalid-assignment-pattern',
-			message: 'Assignment patterns are not supported'
-		}, parser.index - 1);
+		parser.error(
+			{
+				code: 'invalid-assignment-pattern',
+				message: 'Assignment patterns are not supported',
+			},
+			parser.index - 1
+		);
 	}
 }
 
 function error_on_rest_pattern_not_last(parser: Parser) {
-	parser.error({
-		code: 'rest-pattern-not-last',
-		message: 'Rest destructuring expected to be last'
-	}, parser.index);
+	parser.error(
+		{
+			code: 'rest-pattern-not-last',
+			message: 'Rest destructuring expected to be last',
+		},
+		parser.index
+	);
 }
 
 export default function read_context(parser: Parser) {
 	const context: Context = {
 		start: parser.index,
 		end: null,
-		type: null
+		type: null,
 	};
 
 	if (parser.eat('[')) {
@@ -72,9 +78,7 @@ export default function read_context(parser: Parser) {
 		error_on_assignment_pattern(parser);
 		parser.eat(']', true);
 		context.end = parser.index;
-	}
-
-	else if (parser.eat('{')) {
+	} else if (parser.eat('{')) {
 		context.type = 'ObjectPattern';
 		context.properties = [];
 
@@ -90,7 +94,7 @@ export default function read_context(parser: Parser) {
 					start,
 					end: parser.index,
 					type: 'Identifier',
-					name
+					name,
 				};
 				const property: Property = {
 					start,
@@ -99,7 +103,7 @@ export default function read_context(parser: Parser) {
 					kind: 'rest',
 					shorthand: true,
 					key,
-					value: key
+					value: key,
 				};
 
 				context.properties.push(property);
@@ -107,10 +111,13 @@ export default function read_context(parser: Parser) {
 				parser.allow_whitespace();
 
 				if (parser.eat(',')) {
-					parser.error({
-						code: `comma-after-rest`,
-						message: `Comma is not permitted after the rest element`
-					}, parser.index - 1);
+					parser.error(
+						{
+							code: `comma-after-rest`,
+							message: `Comma is not permitted after the rest element`,
+						},
+						parser.index - 1
+					);
 				}
 
 				break;
@@ -122,7 +129,7 @@ export default function read_context(parser: Parser) {
 				start,
 				end: parser.index,
 				type: 'Identifier',
-				name
+				name,
 			};
 			parser.allow_whitespace();
 
@@ -137,7 +144,7 @@ export default function read_context(parser: Parser) {
 				kind: 'init',
 				shorthand: value.type === 'Identifier' && value.name === name,
 				key,
-				value
+				value,
 			};
 
 			context.properties.push(property);
@@ -148,36 +155,28 @@ export default function read_context(parser: Parser) {
 		error_on_assignment_pattern(parser);
 		parser.eat('}', true);
 		context.end = parser.index;
-	}
-
-	else if (parser.eat('...')) {
+	} else if (parser.eat('...')) {
 		const name = parser.read_identifier();
 		if (name) {
 			context.type = 'RestIdentifier';
 			context.end = parser.index;
 			context.name = name;
-		}
-
-		else {
+		} else {
 			parser.error({
 				code: 'invalid-context',
-				message: 'Expected a rest pattern'
+				message: 'Expected a rest pattern',
 			});
 		}
-	}
-
-	else {
+	} else {
 		const name = parser.read_identifier();
 		if (name) {
 			context.type = 'Identifier';
 			context.end = parser.index;
 			context.name = name;
-		}
-
-		else {
+		} else {
 			parser.error({
 				code: 'invalid-context',
-				message: 'Expected a name, array pattern or object pattern'
+				message: 'Expected a name, array pattern or object pattern',
 			});
 		}
 

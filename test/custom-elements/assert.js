@@ -1,6 +1,8 @@
 export function deepEqual(a, b, message) {
 	if (!is_equal(a, b)) {
-		throw new Error(message || `Expected ${JSON.stringify(a)} to equal ${JSON.stringify(b)}`);
+		throw new Error(
+			message || `Expected ${JSON.stringify(a)} to equal ${JSON.stringify(b)}`
+		);
 	}
 }
 
@@ -29,5 +31,6 @@ export function equal(a, b, message) {
 }
 
 export function ok(condition, message) {
-	if (!condition) throw new Error(message || `Expected ${condition} to be truthy`);
+	if (!condition)
+		throw new Error(message || `Expected ${condition} to be truthy`);
 }

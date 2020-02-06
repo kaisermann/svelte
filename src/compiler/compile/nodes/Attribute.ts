@@ -38,9 +38,7 @@ export default class Attribute extends Node {
 			this.chunks = null;
 
 			this.is_static = false;
-		}
-
-		else {
+		} else {
 			this.name = info.name;
 			this.is_true = info.value === true;
 			this.is_static = true;
@@ -50,15 +48,20 @@ export default class Attribute extends Node {
 			this.chunks = this.is_true
 				? []
 				: info.value.map(node => {
-					if (node.type === 'Text') return node;
+						if (node.type === 'Text') return node;
 
-					this.is_static = false;
+						this.is_static = false;
 
-					const expression = new Expression(component, this, scope, node.expression);
+						const expression = new Expression(
+							component,
+							this,
+							scope,
+							node.expression
+						);
 
-					add_to_set(this.dependencies, expression.dependencies);
-					return expression;
-				});
+						add_to_set(this.dependencies, expression.dependencies);
+						return expression;
+				  });
 		}
 	}
 
@@ -86,7 +89,11 @@ export default class Attribute extends Node {
 		}
 
 		let expression = this.chunks
-			.map(chunk => chunk.type === 'Text' ? string_literal(chunk.data) : chunk.manipulate(block))
+			.map(chunk =>
+				chunk.type === 'Text'
+					? string_literal(chunk.data)
+					: chunk.manipulate(block)
+			)
 			.reduce((lhs, rhs) => x`${lhs} + ${rhs}`);
 
 		if (this.chunks[0].type !== 'Text') {
@@ -102,17 +109,23 @@ export default class Attribute extends Node {
 		return this.is_true
 			? true
 			: this.chunks[0]
-				// method should be called only when `is_static = true`
-				? (this.chunks[0] as Text).data
-				: '';
+			? // method should be called only when `is_static = true`
+			  (this.chunks[0] as Text).data
+			: '';
 	}
 
 	should_cache() {
-		return this.is_static
-			? false
-			: this.chunks.length === 1
+		if (this.is_static) return false;
+
+		if (this.chunks.length === 1) {
+			return (
 				// @ts-ignore todo: probably error
-				? this.chunks[0].node.type !== 'Identifier' || this.scope.names.has(this.chunks[0].node.name)
-				: true;
+				this.chunks[0].node.type !== 'Identifier' ||
+				// @ts-ignore todo: probably error
+				this.scope.names.has(this.chunks[0].node.name)
+			);
+		}
+
+		return true;
 	}
 }

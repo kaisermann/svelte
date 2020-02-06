@@ -10,7 +10,12 @@ import { Identifier } from 'estree';
 export default class MustacheTagWrapper extends Tag {
 	var: Identifier = { type: 'Identifier', name: 't' };
 
-	constructor(renderer: Renderer, block: Block, parent: Wrapper, node: MustacheTag | RawMustacheTag) {
+	constructor(
+		renderer: Renderer,
+		block: Block,
+		parent: Wrapper,
+		node: MustacheTag | RawMustacheTag
+	) {
 		super(renderer, block, parent, node);
 	}
 

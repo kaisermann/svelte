@@ -9,7 +9,12 @@ import { Node } from 'estree';
 export default class Tag extends Wrapper {
 	node: MustacheTag | RawMustacheTag;
 
-	constructor(renderer: Renderer, block: Block, parent: Wrapper, node: MustacheTag | RawMustacheTag) {
+	constructor(
+		renderer: Renderer,
+		block: Block,
+		parent: Wrapper,
+		node: MustacheTag | RawMustacheTag
+	) {
 		super(renderer, block, parent, node);
 
 		this.cannot_use_innerhtml();
@@ -21,17 +26,18 @@ export default class Tag extends Wrapper {
 	}
 
 	is_dependencies_static() {
-		return this.node.expression.contextual_dependencies.size === 0 && this.node.expression.dynamic_dependencies().length === 0;
+		return (
+			this.node.expression.contextual_dependencies.size === 0 &&
+			this.node.expression.dynamic_dependencies().length === 0
+		);
 	}
 
-	rename_this_method(
-		block: Block,
-		update: ((value: Node) => (Node | Node[]))
-	) {
+	rename_this_method(block: Block, update: (value: Node) => Node | Node[]) {
 		const dependencies = this.node.expression.dynamic_dependencies();
 		let snippet = this.node.expression.manipulate(block);
 
-		const value = this.node.should_cache && block.get_unique_name(`${this.var.name}_value`);
+		const value =
+			this.node.should_cache && block.get_unique_name(`${this.var.name}_value`);
 		const content = this.node.should_cache ? value : snippet;
 
 		snippet = x`${snippet} + ""`;

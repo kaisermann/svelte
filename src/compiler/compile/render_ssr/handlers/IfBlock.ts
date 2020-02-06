@@ -2,7 +2,11 @@ import IfBlock from '../../nodes/IfBlock';
 import Renderer, { RenderOptions } from '../Renderer';
 import { x } from 'code-red';
 
-export default function(node: IfBlock, renderer: Renderer, options: RenderOptions) {
+export default function(
+	node: IfBlock,
+	renderer: Renderer,
+	options: RenderOptions
+) {
 	const condition = node.expression.node;
 
 	renderer.push();

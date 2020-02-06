@@ -29,18 +29,24 @@ export default class Expression {
 	scope: Scope;
 	scope_map: WeakMap<Node, Scope>;
 
-	declarations: Array<(Node | Node[])> = [];
+	declarations: Array<Node | Node[]> = [];
 	uses_context = false;
 
 	manipulated: Node;
 
 	// todo: owner type
-	constructor(component: Component, owner: Owner, template_scope: TemplateScope, info, lazy?: boolean) {
+	constructor(
+		component: Component,
+		owner: Owner,
+		template_scope: TemplateScope,
+		info,
+		lazy?: boolean
+	) {
 		// TODO revert to direct property access in prod?
 		Object.defineProperties(this, {
 			component: {
-				value: component
-			}
+				value: component,
+			},
 		});
 
 		this.node = info;
@@ -78,12 +84,13 @@ export default class Expression {
 					if (name[0] === '$' && template_scope.names.has(name.slice(1))) {
 						component.error(node, {
 							code: `contextual-store`,
-							message: `Stores must be declared at the top level of the component (this may change in a future version of Svelte)`
+							message: `Stores must be declared at the top level of the component (this may change in a future version of Svelte)`,
 						});
 					}
 
 					if (template_scope.is_let(name)) {
-						if (!function_expression) { // TODO should this be `!lazy` ?
+						if (!function_expression) {
+							// TODO should this be `!lazy` ?
 							contextual_dependencies.add(name);
 							dependencies.add(name);
 						}
@@ -93,10 +100,13 @@ export default class Expression {
 						contextual_dependencies.add(name);
 
 						const owner = template_scope.get_owner(name);
-						const is_index = owner.type === 'EachBlock' && owner.key && name === owner.index;
+						const is_index =
+							owner.type === 'EachBlock' && owner.key && name === owner.index;
 
 						if (!lazy || is_index) {
-							template_scope.dependencies_for_name.get(name).forEach(name => dependencies.add(name));
+							template_scope.dependencies_for_name
+								.get(name)
+								.forEach(name => dependencies.add(name));
 						}
 					} else {
 						if (!lazy) {
@@ -151,7 +161,7 @@ export default class Expression {
 				if (node === function_expression) {
 					function_expression = null;
 				}
-			}
+			},
 		});
 	}
 
@@ -176,7 +186,7 @@ export default class Expression {
 			declarations,
 			scope_map: map,
 			template_scope,
-			owner
+			owner,
 		} = this;
 		let scope = this.scope;
 
@@ -205,9 +215,11 @@ export default class Expression {
 						if (template_scope.names.has(name)) {
 							contextual_dependencies.add(name);
 
-							template_scope.dependencies_for_name.get(name).forEach(dependency => {
-								dependencies.add(dependency);
-							});
+							template_scope.dependencies_for_name
+								.get(name)
+								.forEach(dependency => {
+									dependencies.add(dependency);
+								});
 						} else {
 							dependencies.add(name);
 							component.add_reference(name); // TODO is this redundant/misplaced?
@@ -225,7 +237,10 @@ export default class Expression {
 						// TODO should this be a warning/error? `<p>{foo = 1}</p>`
 					}
 
-					if (node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') {
+					if (
+						node.type === 'FunctionExpression' ||
+						node.type === 'ArrowFunctionExpression'
+					) {
 						function_expression = node;
 						dependencies = new Set();
 						contextual_dependencies = new Set();
@@ -253,28 +268,26 @@ export default class Expression {
 							name: id.name,
 							internal: true,
 							hoistable: true,
-							referenced: true
+							referenced: true,
 						});
-					}
-
-					else if (contextual_dependencies.size === 0) {
+					} else if (contextual_dependencies.size === 0) {
 						// function can be hoisted inside the component init
 						component.partly_hoisted.push(declaration);
 
 						block.renderer.add_to_context(id.name);
 						this.replace(block.renderer.reference(id));
-					}
-
-					else {
+					} else {
 						// we need a combo block/init recipe
 						const deps = Array.from(contextual_dependencies);
 
 						(node as FunctionExpression).params = [
 							...deps.map(name => ({ type: 'Identifier', name } as Identifier)),
-							...(node as FunctionExpression).params
+							...(node as FunctionExpression).params,
 						];
 
-						const context_args = deps.map(name => block.renderer.reference(name));
+						const context_args = deps.map(name =>
+							block.renderer.reference(name)
+						);
 
 						component.partly_hoisted.push(declaration);
 
@@ -307,8 +320,12 @@ export default class Expression {
 					}
 				}
 
-				if (node.type === 'AssignmentExpression' || node.type === 'UpdateExpression') {
-					const assignee = node.type === 'AssignmentExpression' ? node.left : node.argument;
+				if (
+					node.type === 'AssignmentExpression' ||
+					node.type === 'UpdateExpression'
+				) {
+					const assignee =
+						node.type === 'AssignmentExpression' ? node.left : node.argument;
 
 					// normally (`a = 1`, `b.c = 2`), there'll be a single name
 					// (a or b). In destructuring cases (`[d, e] = [e, d]`) there
@@ -328,7 +345,7 @@ export default class Expression {
 
 					this.replace(invalidate(block.renderer, scope, node, traced));
 				}
-			}
+			},
 		});
 
 		if (declarations.length > 0) {
@@ -354,7 +371,11 @@ function get_function_name(_node, parent) {
 	return 'func';
 }
 
-function is_contextual(component: Component, scope: TemplateScope, name: string) {
+function is_contextual(
+	component: Component,
+	scope: TemplateScope,
+	name: string
+) {
 	if (name === '$$props') return true;
 
 	// if it's a name below root scope, it's contextual

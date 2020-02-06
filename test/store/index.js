@@ -27,13 +27,13 @@ describe('store', () => {
 
 			const store = writable(0, () => {
 				called += 1;
-				return () => called -= 1;
+				return () => (called -= 1);
 			});
 
-			const unsubscribe1 = store.subscribe(() => { });
+			const unsubscribe1 = store.subscribe(() => {});
 			assert.equal(called, 1);
 
-			const unsubscribe2 = store.subscribe(() => { });
+			const unsubscribe2 = store.subscribe(() => {});
 			assert.equal(called, 1);
 
 			unsubscribe1();
@@ -62,15 +62,15 @@ describe('store', () => {
 
 		it('only calls subscriber once initially, including on resubscriptions', () => {
 			let num = 0;
-			const store = writable(num, set => set(num += 1));
+			const store = writable(num, set => set((num += 1)));
 
 			let count1 = 0;
 			let count2 = 0;
 
-			store.subscribe(() => count1 += 1)();
+			store.subscribe(() => (count1 += 1))();
 			assert.equal(count1, 1);
 
-			const unsubscribe = store.subscribe(() => count2 += 1);
+			const unsubscribe = store.subscribe(() => (count2 += 1));
 			assert.equal(count2, 1);
 
 			unsubscribe();
@@ -89,7 +89,7 @@ describe('store', () => {
 				set(0);
 
 				return () => {
-					tick = () => { };
+					tick = () => {};
 					running = false;
 				};
 			});
@@ -120,9 +120,9 @@ describe('store', () => {
 		subscribe(fn) {
 			fn(42);
 			return {
-				unsubscribe: () => {}
+				unsubscribe: () => {},
 			};
-		}
+		},
 	};
 
 	describe('derived', () => {
@@ -148,7 +148,7 @@ describe('store', () => {
 		it('maps multiple stores', () => {
 			const a = writable(2);
 			const b = writable(3);
-			const c = derived(([a, b]), ([a, b]) => a * b);
+			const c = derived([a, b], ([a, b]) => a * b);
 
 			const values = [];
 
@@ -168,9 +168,13 @@ describe('store', () => {
 
 		it('passes optional set function', () => {
 			const number = writable(1);
-			const evens = derived(number, (n, set) => {
-				if (n % 2 === 0) set(n);
-			}, 0);
+			const evens = derived(
+				number,
+				(n, set) => {
+					if (n % 2 === 0) set(n);
+				},
+				0
+			);
 
 			const values = [];
 
@@ -194,7 +198,9 @@ describe('store', () => {
 
 		it('prevents glitches', () => {
 			const lastname = writable('Jekyll');
-			const firstname = derived(lastname, n => n === 'Jekyll' ? 'Henry' : 'Edward');
+			const firstname = derived(lastname, n =>
+				n === 'Jekyll' ? 'Henry' : 'Edward'
+			);
 
 			const fullname = derived([firstname, lastname], names => names.join(' '));
 
@@ -206,10 +212,7 @@ describe('store', () => {
 
 			lastname.set('Hyde');
 
-			assert.deepEqual(values, [
-				'Henry Jekyll',
-				'Edward Hyde'
-			]);
+			assert.deepEqual(values, ['Henry Jekyll', 'Edward Hyde']);
 
 			unsubscribe();
 		});
@@ -243,7 +246,7 @@ describe('store', () => {
 		});
 
 		it('derived dependency does not update and shared ancestor updates', () => {
-			const root = writable({ a: 0, b:0 });
+			const root = writable({ a: 0, b: 0 });
 			const values = [];
 
 			const a = derived(root, $root => {
@@ -364,7 +367,7 @@ describe('store', () => {
 
 	describe('get', () => {
 		it('gets the current value of a store', () => {
-			const store = readable(42, () => { });
+			const store = readable(42, () => {});
 			assert.equal(get(store), 42);
 		});
 

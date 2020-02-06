@@ -1,4 +1,4 @@
-import { has_prop } from "./utils";
+import { has_prop } from './utils';
 
 export function append(target: Node, node: Node) {
 	target.appendChild(node);
@@ -22,17 +22,23 @@ export function element<K extends keyof HTMLElementTagNameMap>(name: K) {
 	return document.createElement<K>(name);
 }
 
-export function element_is<K extends keyof HTMLElementTagNameMap>(name: K, is: string) {
+export function element_is<K extends keyof HTMLElementTagNameMap>(
+	name: K,
+	is: string
+) {
 	return document.createElement<K>(name, { is });
 }
 
-export function object_without_properties<T, K extends keyof T>(obj: T, exclude: K[]) {
+export function object_without_properties<T, K extends keyof T>(
+	obj: T,
+	exclude: K[]
+) {
 	const target = {} as Pick<T, Exclude<keyof T, K>>;
 	for (const k in obj) {
 		if (
-			has_prop(obj, k)
+			has_prop(obj, k) &&
 			// @ts-ignore
-			&& exclude.indexOf(k) === -1
+			exclude.indexOf(k) === -1
 		) {
 			// @ts-ignore
 			target[k] = obj[k];
@@ -41,7 +47,9 @@ export function object_without_properties<T, K extends keyof T>(obj: T, exclude:
 	return target;
 }
 
-export function svg_element<K extends keyof SVGElementTagNameMap>(name: K): SVGElement {
+export function svg_element<K extends keyof SVGElementTagNameMap>(
+	name: K
+): SVGElement {
 	return document.createElementNS<K>('http://www.w3.org/2000/svg', name);
 }
 
@@ -57,7 +65,12 @@ export function empty() {
 	return text('');
 }
 
-export function listen(node: Node, event: string, handler: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions | EventListenerOptions) {
+export function listen(
+	node: Node,
+	event: string,
+	handler: EventListenerOrEventListenerObject,
+	options?: boolean | AddEventListenerOptions | EventListenerOptions
+) {
 	node.addEventListener(event, handler, options);
 	return () => node.removeEventListener(event, handler, options);
 }
@@ -87,10 +100,14 @@ export function self(fn) {
 
 export function attr(node: Element, attribute: string, value?: string) {
 	if (value == null) node.removeAttribute(attribute);
-	else if (node.getAttribute(attribute) !== value) node.setAttribute(attribute, value);
+	else if (node.getAttribute(attribute) !== value)
+		node.setAttribute(attribute, value);
 }
 
-export function set_attributes(node: Element & ElementCSSInlineStyle, attributes: { [x: string]: string }) {
+export function set_attributes(
+	node: Element & ElementCSSInlineStyle,
+	attributes: { [x: string]: string }
+) {
 	// @ts-ignore
 	const descriptors = Object.getOwnPropertyDescriptors(node.__proto__);
 	for (const key in attributes) {
@@ -106,7 +123,10 @@ export function set_attributes(node: Element & ElementCSSInlineStyle, attributes
 	}
 }
 
-export function set_svg_attributes(node: Element & ElementCSSInlineStyle, attributes: { [x: string]: string }) {
+export function set_svg_attributes(
+	node: Element & ElementCSSInlineStyle,
+	attributes: { [x: string]: string }
+) {
 	for (const key in attributes) {
 		attr(node, key, attributes[key]);
 	}
@@ -231,7 +251,10 @@ export function select_value(select) {
 }
 
 export function select_multiple_value(select) {
-	return [].map.call(select.querySelectorAll(':checked'), option => option.__value);
+	return [].map.call(
+		select.querySelectorAll(':checked'),
+		option => option.__value
+	);
 }
 
 export function add_resize_listener(element, fn) {
@@ -240,7 +263,10 @@ export function add_resize_listener(element, fn) {
 	}
 
 	const object = document.createElement('object');
-	object.setAttribute('style', 'display: block; position: absolute; top: 0; left: 0; height: 100%; width: 100%; overflow: hidden; pointer-events: none; z-index: -1;');
+	object.setAttribute(
+		'style',
+		'display: block; position: absolute; top: 0; left: 0; height: 100%; width: 100%; overflow: hidden; pointer-events: none; z-index: -1;'
+	);
 	object.setAttribute('aria-hidden', 'true');
 	object.type = 'text/html';
 	object.tabIndex = -1;
@@ -264,7 +290,7 @@ export function add_resize_listener(element, fn) {
 		cancel: () => {
 			win && win.removeEventListener && win.removeEventListener('resize', fn);
 			element.removeChild(object);
-		}
+		},
 	};
 }
 
@@ -272,13 +298,16 @@ export function toggle_class(element, name, toggle) {
 	element.classList[toggle ? 'add' : 'remove'](name);
 }
 
-export function custom_event<T=any>(type: string, detail?: T) {
+export function custom_event<T = any>(type: string, detail?: T) {
 	const e: CustomEvent<T> = document.createEvent('CustomEvent');
 	e.initCustomEvent(type, false, false, detail);
 	return e;
 }
 
-export function query_selector_all(selector: string, parent: HTMLElement = document.body) {
+export function query_selector_all(
+	selector: string,
+	parent: HTMLElement = document.body
+) {
 	return Array.from(parent.querySelectorAll(selector));
 }
 

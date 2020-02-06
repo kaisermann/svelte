@@ -15,7 +15,7 @@ export default class BindingWrapper {
 	object: string;
 	handler: {
 		uses_context: boolean;
-		mutation: (Node | Node[]);
+		mutation: Node | Node[];
 		contextual_dependencies: Set<string>;
 		snippet?: Node;
 	};
@@ -51,20 +51,31 @@ export default class BindingWrapper {
 		this.object = get_object(this.node.expression.node).name;
 
 		// view to model
-		this.handler = get_event_handler(this, parent.renderer, block, this.object, this.node.raw_expression);
+		this.handler = get_event_handler(
+			this,
+			parent.renderer,
+			block,
+			this.object,
+			this.node.raw_expression
+		);
 
 		this.snippet = this.node.expression.manipulate(block);
 
 		this.is_readonly = this.node.is_readonly;
 
-		this.needs_lock = this.node.name === 'currentTime' || (parent.node.name === 'input' && parent.node.get_static_attribute_value('type') === 'number'); // TODO others?
+		this.needs_lock =
+			this.node.name === 'currentTime' ||
+			(parent.node.name === 'input' &&
+				parent.node.get_static_attribute_value('type') === 'number'); // TODO others?
 	}
 
 	get_dependencies() {
 		const dependencies = new Set(this.node.expression.dependencies);
 
 		this.node.expression.dependencies.forEach((prop: string) => {
-			const indirect_dependencies = this.parent.renderer.component.indirect_dependencies.get(prop);
+			const indirect_dependencies = this.parent.renderer.component.indirect_dependencies.get(
+				prop
+			);
 			if (indirect_dependencies) {
 				indirect_dependencies.forEach(indirect_dependency => {
 					dependencies.add(indirect_dependency);
@@ -96,8 +107,16 @@ export default class BindingWrapper {
 		if (parent.node.name === 'input') {
 			const type = parent.node.get_static_attribute_value('type');
 
-			if (type === null || type === "" || type === "text" || type === "email" || type === "password") {
-				update_conditions.push(x`(${parent.var}.${this.node.name} !== ${this.snippet})`);
+			if (
+				type === null ||
+				type === '' ||
+				type === 'text' ||
+				type === 'email' ||
+				type === 'password'
+			) {
+				update_conditions.push(
+					x`(${parent.var}.${this.node.name} !== ${this.snippet})`
+				);
 			}
 		}
 
@@ -107,9 +126,11 @@ export default class BindingWrapper {
 
 		// special cases
 		switch (this.node.name) {
-			case 'group':
-			{
-				const binding_group = get_binding_group(parent.renderer, this.node.expression.node);
+			case 'group': {
+				const binding_group = get_binding_group(
+					parent.renderer,
+					this.node.expression.node
+				);
 
 				block.renderer.add_to_context(`$$binding_groups`);
 				const reference = block.renderer.reference(`$$binding_groups`);
@@ -125,7 +146,9 @@ export default class BindingWrapper {
 			}
 
 			case 'textContent':
-				update_conditions.push(x`${this.snippet} !== ${parent.var}.textContent`);
+				update_conditions.push(
+					x`${this.snippet} !== ${parent.var}.textContent`
+				);
 				mount_conditions.push(x`${this.snippet} !== void 0`);
 				break;
 
@@ -145,8 +168,7 @@ export default class BindingWrapper {
 				mount_conditions.push(x`!@_isNaN(${this.snippet})`);
 				break;
 
-			case 'paused':
-			{
+			case 'paused': {
 				// this is necessary to prevent audio restarting by itself
 				const last = block.get_unique_name(`${parent.var.name}_is_paused`);
 				block.add_variable(last, x`true`);
@@ -166,7 +188,9 @@ export default class BindingWrapper {
 
 		if (update_dom) {
 			if (update_conditions.length > 0) {
-				const condition = update_conditions.reduce((lhs, rhs) => x`${lhs} && ${rhs}`);
+				const condition = update_conditions.reduce(
+					(lhs, rhs) => x`${lhs} && ${rhs}`
+				);
 
 				block.chunks.update.push(b`
 					if (${condition}) {
@@ -180,7 +204,9 @@ export default class BindingWrapper {
 
 		if (mount_dom) {
 			if (mount_conditions.length > 0) {
-				const condition = mount_conditions.reduce((lhs, rhs) => x`${lhs} && ${rhs}`);
+				const condition = mount_conditions.reduce(
+					(lhs, rhs) => x`${lhs} && ${rhs}`
+				);
 
 				block.chunks.mount.push(b`
 					if (${condition}) {
@@ -194,10 +220,7 @@ export default class BindingWrapper {
 	}
 }
 
-function get_dom_updater(
-	element: ElementWrapper,
-	binding: BindingWrapper
-) {
+function get_dom_updater(element: ElementWrapper, binding: BindingWrapper) {
 	const { node } = element;
 
 	if (binding.is_readonly_media_attribute()) {
@@ -209,17 +232,18 @@ function get_dom_updater(
 	}
 
 	if (node.name === 'select') {
-		return node.get_static_attribute_value('multiple') === true ?
-			b`@select_options(${element.var}, ${binding.snippet})` :
-			b`@select_option(${element.var}, ${binding.snippet})`;
+		return node.get_static_attribute_value('multiple') === true
+			? b`@select_options(${element.var}, ${binding.snippet})`
+			: b`@select_option(${element.var}, ${binding.snippet})`;
 	}
 
 	if (binding.node.name === 'group') {
 		const type = node.get_static_attribute_value('type');
 
-		const condition = type === 'checkbox'
-			? x`~${binding.snippet}.indexOf(${element.var}.__value)`
-			: x`${element.var}.__value === ${binding.snippet}`;
+		const condition =
+			type === 'checkbox'
+				? x`~${binding.snippet}.indexOf(${element.var}.__value)`
+				: x`${element.var}.__value === ${binding.snippet}`;
 
 		return b`${element.var}.checked = ${condition};`;
 	}
@@ -254,12 +278,14 @@ function get_event_handler(
 	lhs: Node
 ): {
 	uses_context: boolean;
-	mutation: (Node | Node[]);
+	mutation: Node | Node[];
 	contextual_dependencies: Set<string>;
 	lhs?: Node;
 } {
 	const value = get_value_from_dom(renderer, binding.parent, binding);
-	const contextual_dependencies = new Set(binding.node.expression.contextual_dependencies);
+	const contextual_dependencies = new Set(
+		binding.node.expression.contextual_dependencies
+	);
 
 	const context = block.bindings.get(name);
 	let set_store;
@@ -291,9 +317,10 @@ function get_event_handler(
 	`;
 
 	return {
-		uses_context: binding.node.is_contextual || binding.node.expression.uses_context, // TODO this is messy
+		uses_context:
+			binding.node.is_contextual || binding.node.expression.uses_context, // TODO this is messy
 		mutation,
-		contextual_dependencies
+		contextual_dependencies,
 	};
 }
 
@@ -311,16 +338,19 @@ function get_value_from_dom(
 
 	// <select bind:value='selected>
 	if (node.name === 'select') {
-		return node.get_static_attribute_value('multiple') === true ?
-			x`@select_multiple_value(this)` :
-			x`@select_value(this)`;
+		return node.get_static_attribute_value('multiple') === true
+			? x`@select_multiple_value(this)`
+			: x`@select_value(this)`;
 	}
 
 	const type = node.get_static_attribute_value('type');
 
 	// <input type='checkbox' bind:group='foo'>
 	if (name === 'group') {
-		const binding_group = get_binding_group(renderer, binding.node.expression.node);
+		const binding_group = get_binding_group(
+			renderer,
+			binding.node.expression.node
+		);
 		if (type === 'checkbox') {
 			return x`@get_binding_group_value($$binding_groups[${binding_group}])`;
 		}
@@ -333,7 +363,7 @@ function get_value_from_dom(
 		return x`@to_number(this.${name})`;
 	}
 
-	if ((name === 'buffered' || name === 'seekable' || name === 'played')) {
+	if (name === 'buffered' || name === 'seekable' || name === 'played') {
 		return x`@time_ranges_to_array(this.${name})`;
 	}
 

@@ -14,7 +14,7 @@ export default class Title extends Node {
 		if (info.attributes.length > 0) {
 			component.error(info.attributes[0], {
 				code: `illegal-attribute`,
-				message: `<title> cannot have attributes`
+				message: `<title> cannot have attributes`,
 			});
 		}
 
@@ -22,16 +22,15 @@ export default class Title extends Node {
 			if (child.type !== 'Text' && child.type !== 'MustacheTag') {
 				component.error(child, {
 					code: 'illegal-structure',
-					message: `<title> can only contain text and {tags}`
+					message: `<title> can only contain text and {tags}`,
 				});
 			}
 		});
 
-		this.should_cache = info.children.length === 1
-			? (
-				info.children[0].type !== 'Identifier' ||
-				scope.names.has(info.children[0].name)
-			)
-			: true;
+		this.should_cache =
+			info.children.length === 1
+				? info.children[0].type !== 'Identifier' ||
+				  scope.names.has(info.children[0].name)
+				: true;
 	}
 }

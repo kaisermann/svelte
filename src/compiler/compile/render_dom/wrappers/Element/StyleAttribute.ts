@@ -10,7 +10,7 @@ import Text from '../../../nodes/Text';
 
 export interface StyleProp {
 	key: string;
-	value: Array<Text|Expression>;
+	value: Array<Text | Expression>;
 	important: boolean;
 }
 
@@ -53,7 +53,9 @@ export default class StyleAttributeWrapper extends AttributeWrapper {
 
 					const update = b`
 						if (${condition}) {
-							@set_style(${this.parent.var}, "${prop.key}", ${value}, ${prop.important ? 1 : null});
+							@set_style(${this.parent.var}, "${prop.key}", ${value}, ${
+						prop.important ? 1 : null
+					});
 						}`;
 
 					block.chunks.update.push(update);
@@ -63,13 +65,15 @@ export default class StyleAttributeWrapper extends AttributeWrapper {
 			}
 
 			block.chunks.hydrate.push(
-				b`@set_style(${this.parent.var}, "${prop.key}", ${value}, ${prop.important ? 1 : null});`
+				b`@set_style(${this.parent.var}, "${prop.key}", ${value}, ${
+					prop.important ? 1 : null
+				});`
 			);
 		});
 	}
 }
 
-function optimize_style(value: Array<Text|Expression>) {
+function optimize_style(value: Array<Text | Expression>) {
 	const props: StyleProp[] = [];
 	let chunks = value.slice();
 
@@ -91,7 +95,7 @@ function optimize_style(value: Array<Text|Expression>) {
 				start: chunk.start + offset,
 				end: chunk.end,
 				type: 'Text',
-				data: remaining_data
+				data: remaining_data,
 			} as Text;
 		} else {
 			chunks.shift();
@@ -107,7 +111,7 @@ function optimize_style(value: Array<Text|Expression>) {
 }
 
 function get_style_value(chunks: Array<Text | Expression>) {
-	const value: Array<Text|Expression> = [];
+	const value: Array<Text | Expression> = [];
 
 	let in_url = false;
 	let quote_mark = null;
@@ -147,7 +151,7 @@ function get_style_value(chunks: Array<Text | Expression>) {
 					type: 'Text',
 					start: chunk.start,
 					end: chunk.start + c,
-					data: chunk.data.slice(0, c)
+					data: chunk.data.slice(0, c),
 				} as Text);
 			}
 
@@ -159,14 +163,12 @@ function get_style_value(chunks: Array<Text | Expression>) {
 					start: chunk.start + c,
 					end: chunk.end,
 					type: 'Text',
-					data: remaining_data
+					data: remaining_data,
 				} as Text);
 
 				break;
 			}
-		}
-
-		else {
+		} else {
 			value.push(chunk);
 		}
 	}
@@ -174,7 +176,11 @@ function get_style_value(chunks: Array<Text | Expression>) {
 	let important = false;
 
 	const last_chunk = value[value.length - 1];
-	if (last_chunk && last_chunk.type === 'Text' && /\s*!important\s*$/.test(last_chunk.data)) {
+	if (
+		last_chunk &&
+		last_chunk.type === 'Text' &&
+		/\s*!important\s*$/.test(last_chunk.data)
+	) {
 		important = true;
 		last_chunk.data = last_chunk.data.replace(/\s*!important\s*$/, '');
 		if (!last_chunk.data) value.pop();
@@ -183,10 +189,10 @@ function get_style_value(chunks: Array<Text | Expression>) {
 	return {
 		chunks,
 		value,
-		important
+		important,
 	};
 }
 
-function is_dynamic(value: Array<Text|Expression>) {
+function is_dynamic(value: Array<Text | Expression>) {
 	return value.length > 1 || value[0].type !== 'Text';
 }

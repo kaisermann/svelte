@@ -16,7 +16,11 @@ interface FlipParams {
 	easing: (t: number) => number;
 }
 
-export function flip(node: Element, animation: { from: DOMRect; to: DOMRect }, params: FlipParams): AnimationConfig {
+export function flip(
+	node: Element,
+	animation: { from: DOMRect; to: DOMRect },
+	params: FlipParams
+): AnimationConfig {
 	const style = getComputedStyle(node);
 	const transform = style.transform === 'none' ? '' : style.transform;
 	const scaleX = animation.from.width / node.clientWidth;
@@ -30,13 +34,14 @@ export function flip(node: Element, animation: { from: DOMRect; to: DOMRect }, p
 	const {
 		delay = 0,
 		duration = (d: number) => Math.sqrt(d) * 120,
-		easing = cubicOut
+		easing = cubicOut,
 	} = params;
 
 	return {
 		delay,
 		duration: is_function(duration) ? duration(d) : duration,
 		easing,
-		css: (_t, u) => `transform: ${transform} translate(${u * dx}px, ${u * dy}px);`
+		css: (_t, u) =>
+			`transform: ${transform} translate(${u * dx}px, ${u * dy}px);`,
 	};
 }

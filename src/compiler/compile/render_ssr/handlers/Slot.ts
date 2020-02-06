@@ -3,7 +3,11 @@ import Slot from '../../nodes/Slot';
 import { x } from 'code-red';
 import get_slot_data from '../../utils/get_slot_data';
 
-export default function(node: Slot, renderer: Renderer, options: RenderOptions) {
+export default function(
+	node: Slot,
+	renderer: Renderer,
+	options: RenderOptions
+) {
 	const slot_data = get_slot_data(node.values);
 
 	renderer.push();

@@ -12,6 +12,11 @@ export default class Comment extends Node {
 		this.data = info.data;
 
 		const match = pattern.exec(this.data);
-		this.ignores = match ? match[1].split(/[^\S]/).map(x => x.trim()).filter(Boolean) : [];
+		this.ignores = match
+			? match[1]
+					.split(/[^\S]/)
+					.map(x => x.trim())
+					.filter(Boolean)
+			: [];
 	}
 }

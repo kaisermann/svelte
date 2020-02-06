@@ -5,7 +5,12 @@ import Block from '../../Block';
 import Binding from '../../../nodes/Binding';
 import { Identifier } from 'estree';
 
-export default function bind_this(component: Component, block: Block, binding: Binding, variable: Identifier) {
+export default function bind_this(
+	component: Component,
+	block: Block,
+	binding: Binding,
+	variable: Identifier
+) {
 	const fn = component.get_unique_name(`${variable.name}_binding`);
 
 	block.renderer.add_to_context(fn.name);
@@ -27,19 +32,22 @@ export default function bind_this(component: Component, block: Block, binding: B
 		object = flatten_reference(binding.raw_expression).name;
 		lhs = binding.raw_expression;
 
-		body = binding.raw_expression.type === 'Identifier'
-			? b`
+		body =
+			binding.raw_expression.type === 'Identifier'
+				? b`
 				${block.renderer.invalidate(object, x`${lhs} = $$value`)};
 			`
-			: b`
+				: b`
 				${lhs} = $$value;
 				${block.renderer.invalidate(object)};
 			`;
 	}
 
-	const contextual_dependencies: Identifier[] = Array.from(binding.expression.contextual_dependencies).map(name => ({
+	const contextual_dependencies: Identifier[] = Array.from(
+		binding.expression.contextual_dependencies
+	).map(name => ({
 		type: 'Identifier',
-		name
+		name,
 	}));
 
 	if (contextual_dependencies.length) {
@@ -78,8 +86,7 @@ export default function bind_this(component: Component, block: Block, binding: B
 				${unassign}();
 				${args.map(a => b`${a} = ${block.renderer.reference(a.name)}`)};
 				${assign}();
-			}`
-		);
+			}`);
 
 		block.chunks.destroy.push(b`${unassign}();`);
 		return b`${assign}();`;

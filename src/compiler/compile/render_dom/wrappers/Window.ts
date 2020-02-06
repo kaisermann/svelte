@@ -21,7 +21,7 @@ const associated_events = {
 
 const properties = {
 	scrollX: 'pageXOffset',
-	scrollY: 'pageYOffset'
+	scrollY: 'pageYOffset',
 };
 
 const readonly = new Set([
@@ -36,9 +36,16 @@ export default class WindowWrapper extends Wrapper {
 	node: Window;
 	handlers: EventHandler[];
 
-	constructor(renderer: Renderer, block: Block, parent: Wrapper, node: TemplateNode) {
+	constructor(
+		renderer: Renderer,
+		block: Block,
+		parent: Wrapper,
+		node: TemplateNode
+	) {
 		super(renderer, block, parent, node);
-		this.handlers = this.node.handlers.map(handler => new EventHandler(handler, this));
+		this.handlers = this.node.handlers.map(
+			handler => new EventHandler(handler, this)
+		);
 	}
 
 	render(block: Block, _parent_node: Identifier, _parent_nodes: Identifier) {
@@ -68,7 +75,7 @@ export default class WindowWrapper extends Wrapper {
 			if (!events[associated_event]) events[associated_event] = [];
 			events[associated_event].push({
 				name: binding.expression.node.name,
-				value: property
+				value: property,
 			});
 		});
 
@@ -89,16 +96,18 @@ export default class WindowWrapper extends Wrapper {
 				block.add_variable(clear_scrolling, x`() => { ${scrolling} = false }`);
 				block.add_variable(scrolling_timeout);
 
-				const condition = bindings.scrollX && bindings.scrollY
-					? x`"${bindings.scrollX}" in this._state || "${bindings.scrollY}" in this._state`
-					: x`"${bindings.scrollX || bindings.scrollY}" in this._state`;
+				const condition =
+					bindings.scrollX && bindings.scrollY
+						? x`"${bindings.scrollX}" in this._state || "${bindings.scrollY}" in this._state`
+						: x`"${bindings.scrollX || bindings.scrollY}" in this._state`;
 
 				const scrollX = bindings.scrollX && x`this._state.${bindings.scrollX}`;
 				const scrollY = bindings.scrollY && x`this._state.${bindings.scrollY}`;
 
 				renderer.meta_bindings.push(b`
 					if (${condition}) {
-						@_scrollTo(${scrollX || '@_window.pageXOffset'}, ${scrollY || '@_window.pageYOffset'});
+						@_scrollTo(${scrollX || '@_window.pageXOffset'}, ${scrollY ||
+					'@_window.pageYOffset'});
 					}
 					${scrollX && `${scrollX} = @_window.pageXOffset;`}
 					${scrollY && `${scrollY} = @_window.pageYOffset;`}
@@ -126,7 +135,12 @@ export default class WindowWrapper extends Wrapper {
 
 			component.partly_hoisted.push(b`
 				function ${id}() {
-					${props.map(prop => renderer.invalidate(prop.name, x`${prop.name} = @_window.${prop.value}`))}
+					${props.map(prop =>
+						renderer.invalidate(
+							prop.name,
+							x`${prop.name} = @_window.${prop.value}`
+						)
+					)}
 				}
 			`);
 
@@ -139,10 +153,16 @@ export default class WindowWrapper extends Wrapper {
 
 		// special case... might need to abstract this out if we add more special cases
 		if (bindings.scrollX || bindings.scrollY) {
-			const condition = renderer.dirty([bindings.scrollX, bindings.scrollY].filter(Boolean));
+			const condition = renderer.dirty(
+				[bindings.scrollX, bindings.scrollY].filter(Boolean)
+			);
 
-			const scrollX = bindings.scrollX ? renderer.reference(bindings.scrollX) : x`@_window.pageXOffset`;
-			const scrollY = bindings.scrollY ? renderer.reference(bindings.scrollY) : x`@_window.pageYOffset`;
+			const scrollX = bindings.scrollX
+				? renderer.reference(bindings.scrollX)
+				: x`@_window.pageXOffset`;
+			const scrollY = bindings.scrollY
+				? renderer.reference(bindings.scrollY)
+				: x`@_window.pageYOffset`;
 
 			block.chunks.update.push(b`
 				if (${condition} && !${scrolling}) {

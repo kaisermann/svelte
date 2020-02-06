@@ -21,7 +21,9 @@ export default function get_code_frame(
 			const line_num = String(i + frame_start + 1).padStart(digits, ' ');
 
 			if (isErrorLine) {
-				const indicator = ' '.repeat(digits + 2 + tabs_to_spaces(str.slice(0, column)).length) + '^';
+				const indicator =
+					' '.repeat(digits + 2 + tabs_to_spaces(str.slice(0, column)).length) +
+					'^';
 				return `${line_num}: ${tabs_to_spaces(str)}\n${indicator}`;
 			}
 

@@ -4,7 +4,11 @@ import Block from '../../Block';
 import TemplateScope from '../../../nodes/shared/TemplateScope';
 import { BinaryExpression } from 'estree';
 
-export function get_slot_definition(block: Block, scope: TemplateScope, lets: Let[]) {
+export function get_slot_definition(
+	block: Block,
+	scope: TemplateScope,
+	lets: Let[]
+) {
 	if (lets.length === 0) return { block, scope };
 
 	const context_input = {
@@ -13,8 +17,8 @@ export function get_slot_definition(block: Block, scope: TemplateScope, lets: Le
 			type: 'Property',
 			kind: 'init',
 			key: l.name,
-			value: l.value || l.name
-		}))
+			value: l.value || l.name,
+		})),
 	};
 
 	const properties = [];
@@ -57,7 +61,9 @@ export function get_slot_definition(block: Block, scope: TemplateScope, lets: Le
 
 	const context = {
 		type: 'ObjectExpression',
-		properties: Array.from(names).map(name => p`${block.renderer.context_lookup.get(name).index}: ${name}`)
+		properties: Array.from(names).map(
+			name => p`${block.renderer.context_lookup.get(name).index}: ${name}`
+		),
 	};
 
 	const { context_lookup } = block.renderer;
@@ -74,7 +80,9 @@ export function get_slot_definition(block: Block, scope: TemplateScope, lets: Le
 					const i = context_lookup.get(name).index.value as number;
 					const g = Math.floor(i / 31);
 
-					const lookup_name = names_lookup.has(name) ? names_lookup.get(name) : name;
+					const lookup_name = names_lookup.has(name)
+						? names_lookup.get(name)
+						: name;
 
 					if (!grouped[g]) grouped[g] = [];
 					grouped[g].push({ name: lookup_name, n: i % 31 });
@@ -85,31 +93,33 @@ export function get_slot_definition(block: Block, scope: TemplateScope, lets: Le
 				for (let g = 0; g < grouped.length; g += 1) {
 					elements[g] = grouped[g]
 						? grouped[g]
-							.map(({ name, n }) => x`${name} ? ${1 << n} : 0`)
-							.reduce((lhs, rhs) => x`${lhs} | ${rhs}`)
+								.map(({ name, n }) => x`${name} ? ${1 << n} : 0`)
+								.reduce((lhs, rhs) => x`${lhs} | ${rhs}`)
 						: x`0`;
 				}
 
 				return {
 					type: 'ArrayExpression',
-					elements
+					elements,
 				};
 			}
 
 			return Array.from(names)
 				.map(name => {
-					const lookup_name = names_lookup.has(name) ? names_lookup.get(name) : name;
+					const lookup_name = names_lookup.has(name)
+						? names_lookup.get(name)
+						: name;
 					const i = context_lookup.get(name).index.value as number;
 					return x`${lookup_name} ? ${1 << i} : 0`;
 				})
 				.reduce((lhs, rhs) => x`${lhs} | ${rhs}`) as BinaryExpression;
-		}
+		},
 	};
 
 	return {
 		block,
 		scope,
 		get_context: x`${context_input} => ${context}`,
-		get_changes: x`${changes_input} => ${changes}`
+		get_changes: x`${changes_input} => ${changes}`,
 	};
 }

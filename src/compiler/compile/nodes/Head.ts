@@ -13,16 +13,23 @@ export default class Head extends Node {
 		if (info.attributes.length) {
 			component.error(info.attributes[0], {
 				code: `invalid-attribute`,
-				message: `<svelte:head> should not have any attributes or directives`
+				message: `<svelte:head> should not have any attributes or directives`,
 			});
 		}
 
-		this.children = map_children(component, parent, scope, info.children.filter(child => {
-			return (child.type !== 'Text' || /\S/.test(child.data));
-		}));
+		this.children = map_children(
+			component,
+			parent,
+			scope,
+			info.children.filter(child => {
+				return child.type !== 'Text' || /\S/.test(child.data);
+			})
+		);
 
 		if (this.children.length > 0) {
-			this.id = `svelte-${hash(this.component.source.slice(this.start, this.end))}`;
+			this.id = `svelte-${hash(
+				this.component.source.slice(this.start, this.end)
+			)}`;
 		}
 	}
 }

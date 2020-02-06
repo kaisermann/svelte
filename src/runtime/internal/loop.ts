@@ -1,6 +1,9 @@
 import { raf } from './environment';
 
-export interface Task { abort(): void; promise: Promise<void> }
+export interface Task {
+	abort(): void;
+	promise: Promise<void>;
+}
 
 type TaskCallback = (now: number) => boolean | void;
 type TaskEntry = { c: TaskCallback; f: () => void };
@@ -36,10 +39,10 @@ export function loop(callback: TaskCallback): Task {
 
 	return {
 		promise: new Promise(fulfill => {
-			tasks.add(task = { c: callback, f: fulfill });
+			tasks.add((task = { c: callback, f: fulfill }));
 		}),
 		abort() {
 			tasks.delete(task);
-		}
+		},
 	};
 }

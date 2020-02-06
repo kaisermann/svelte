@@ -14,8 +14,8 @@ export function get_slot_scope(lets: Let[]): ObjectPattern {
 				shorthand: false,
 				computed: false,
 				key: l.name,
-				value: l.value || l.name
+				value: l.value || l.name,
 			};
-		})
+		}),
 	};
 }

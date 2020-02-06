@@ -14,9 +14,12 @@ export default function flatten_reference(node: Node) {
 		node = node.object;
 	}
 
-	const name = node.type === 'Identifier'
-		? node.name
-		: node.type === 'ThisExpression' ? 'this' : null;
+	const name =
+		node.type === 'Identifier'
+			? node.name
+			: node.type === 'ThisExpression'
+			? 'this'
+			: null;
 
 	nodes.unshift(node);
 

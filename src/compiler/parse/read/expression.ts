@@ -3,7 +3,11 @@ import { Parser } from '../index';
 import { Identifier, Node, SimpleLiteral } from 'estree';
 import { whitespace } from '../../utils/patterns';
 
-const literals = new Map([['true', true], ['false', false], ['null', null]]);
+const literals = new Map([
+	['true', true],
+	['false', false],
+	['null', null],
+]);
 
 export default function read_expression(parser: Parser): Node {
 	const start = parser.index;
@@ -48,10 +52,13 @@ export default function read_expression(parser: Parser): Node {
 			if (char === ')') {
 				num_parens -= 1;
 			} else if (!whitespace.test(char)) {
-				parser.error({
-					code: 'unexpected-token',
-					message: 'Expected )'
-				}, index);
+				parser.error(
+					{
+						code: 'unexpected-token',
+						message: 'Expected )',
+					},
+					index
+				);
 			}
 
 			index += 1;

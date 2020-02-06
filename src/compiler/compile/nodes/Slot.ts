@@ -11,14 +11,19 @@ export default class Slot extends Element {
 	slot_name: string;
 	values: Map<string, Attribute> = new Map();
 
-	constructor(component: Component, parent: INode, scope: TemplateScope, info: any) {
+	constructor(
+		component: Component,
+		parent: INode,
+		scope: TemplateScope,
+		info: any
+	) {
 		super(component, parent, scope, info);
 
 		info.attributes.forEach(attr => {
 			if (attr.type !== 'Attribute') {
 				component.error(attr, {
 					code: `invalid-slot-directive`,
-					message: `<slot> cannot have directives`
+					message: `<slot> cannot have directives`,
 				});
 			}
 
@@ -26,7 +31,7 @@ export default class Slot extends Element {
 				if (attr.value.length !== 1 || attr.value[0].type !== 'Text') {
 					component.error(attr, {
 						code: `dynamic-slot-name`,
-						message: `<slot> name cannot be dynamic`
+						message: `<slot> name cannot be dynamic`,
 					});
 				}
 
@@ -34,7 +39,7 @@ export default class Slot extends Element {
 				if (this.slot_name === 'default') {
 					component.error(attr, {
 						code: `invalid-slot-name`,
-						message: `default is a reserved word — it cannot be used as a slot name`
+						message: `default is a reserved word — it cannot be used as a slot name`,
 					});
 				}
 			}
@@ -48,7 +53,7 @@ export default class Slot extends Element {
 			// if this is the default slot, add our dependencies to any
 			// other slots (which inherit our slot values) that were
 			// previously encountered
-			component.slots.forEach((slot) => {
+			component.slots.forEach(slot => {
 				this.values.forEach((attribute, name) => {
 					if (!slot.values.has(name)) {
 						slot.values.set(name, attribute);

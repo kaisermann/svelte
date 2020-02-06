@@ -1,19 +1,22 @@
 export function string_literal(data: string) {
 	return {
 		type: 'Literal',
-		value: data
+		value: data,
 	};
 }
 
 export function escape(data: string, { only_escape_at_symbol = false } = {}) {
-	return data.replace(only_escape_at_symbol ? /@+/g : /(@+|#+)/g, (match: string) => {
-		return match + match[0];
-	});
+	return data.replace(
+		only_escape_at_symbol ? /@+/g : /(@+|#+)/g,
+		(match: string) => {
+			return match + match[0];
+		}
+	);
 }
 
 const escaped = {
-  '"': '&quot;',
-  "'": '&#39;',
+	'"': '&quot;',
+	"'": '&#39;',
 	'&': '&amp;',
 	'<': '&lt;',
 	'>': '&gt;',

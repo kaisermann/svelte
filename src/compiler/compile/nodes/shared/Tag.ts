@@ -10,9 +10,9 @@ export default class Tag extends Node {
 		super(component, parent, scope, info);
 		this.expression = new Expression(component, this, scope, info.expression);
 
-		this.should_cache = (
+		this.should_cache =
 			info.expression.type !== 'Identifier' ||
-			(this.expression.dependencies.size && scope.names.has(info.expression.name))
-		);
+			(this.expression.dependencies.size &&
+				scope.names.has(info.expression.name));
 	}
 }

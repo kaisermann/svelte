@@ -4,18 +4,31 @@ import { loop } from './loop';
 import { create_rule, delete_rule } from './style_manager';
 import { AnimationConfig } from '../animate';
 
-
 //todo: documentation says it is DOMRect, but in IE it would be ClientRect
-type PositionRect = DOMRect|ClientRect;
+type PositionRect = DOMRect | ClientRect;
 
-type AnimationFn = (node: Element, { from, to }: { from: PositionRect; to: PositionRect }, params: any) => AnimationConfig;
+type AnimationFn = (
+	node: Element,
+	{ from, to }: { from: PositionRect; to: PositionRect },
+	params: any
+) => AnimationConfig;
 
-export function create_animation(node: Element & ElementCSSInlineStyle, from: PositionRect, fn: AnimationFn, params) {
+export function create_animation(
+	node: Element & ElementCSSInlineStyle,
+	from: PositionRect,
+	fn: AnimationFn,
+	params
+) {
 	if (!from) return noop;
 
 	const to = node.getBoundingClientRect();
-	if (from.left === to.left && from.right === to.right && from.top === to.top && from.bottom === to.bottom) return noop;
-
+	if (
+		from.left === to.left &&
+		from.right === to.right &&
+		from.top === to.top &&
+		from.bottom === to.bottom
+	)
+		return noop;
 
 	const {
 		delay = 0,
@@ -26,7 +39,7 @@ export function create_animation(node: Element & ElementCSSInlineStyle, from: Po
 		// @ts-ignore todo:
 		end = start_time + duration,
 		tick = noop,
-		css
+		css,
 	} = fn(node, { from, to }, params);
 
 	let running = true;
@@ -91,13 +104,17 @@ export function fix_position(node: Element & ElementCSSInlineStyle) {
 	}
 }
 
-export function add_transform(node: Element & ElementCSSInlineStyle, a: PositionRect) {
+export function add_transform(
+	node: Element & ElementCSSInlineStyle,
+	a: PositionRect
+) {
 	const b = node.getBoundingClientRect();
 
 	if (a.left !== b.left || a.top !== b.top) {
 		const style = getComputedStyle(node);
 		const transform = style.transform === 'none' ? '' : style.transform;
 
-		node.style.transform = `${transform} translate(${a.left - b.left}px, ${a.top - b.top}px)`;
+		node.style.transform = `${transform} translate(${a.left -
+			b.left}px, ${a.top - b.top}px)`;
 	}
 }

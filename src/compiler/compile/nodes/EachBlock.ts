@@ -13,30 +13,44 @@ interface Context {
 	modifier: (node: Node) => Node;
 }
 
-function unpack_destructuring(contexts: Context[], node: Node, modifier: (node: Node) => Node) {
+function unpack_destructuring(
+	contexts: Context[],
+	node: Node,
+	modifier: (node: Node) => Node
+) {
 	if (!node) return;
 
-	if (node.type === 'Identifier' || (node as any).type === 'RestIdentifier') { // TODO is this right? not RestElement?
+	if (node.type === 'Identifier' || (node as any).type === 'RestIdentifier') {
+		// TODO is this right? not RestElement?
 		contexts.push({
 			key: node as Identifier,
-			modifier
+			modifier,
 		});
 	} else if (node.type === 'ArrayPattern') {
 		node.elements.forEach((element, i) => {
 			if (element && (element as any).type === 'RestIdentifier') {
-				unpack_destructuring(contexts, element, node => x`${modifier(node)}.slice(${i})` as Node);
+				unpack_destructuring(
+					contexts,
+					element,
+					node => x`${modifier(node)}.slice(${i})` as Node
+				);
 			} else {
-				unpack_destructuring(contexts, element, node => x`${modifier(node)}[${i}]` as Node);
+				unpack_destructuring(
+					contexts,
+					element,
+					node => x`${modifier(node)}[${i}]` as Node
+				);
 			}
 		});
 	} else if (node.type === 'ObjectPattern') {
 		const used_properties = [];
 
 		node.properties.forEach((property, i) => {
-			if ((property as any).kind === 'rest') { // TODO is this right?
+			if ((property as any).kind === 'rest') {
+				// TODO is this right?
 				const replacement: RestElement = {
 					type: 'RestElement',
-					argument: property.key as Identifier
+					argument: property.key as Identifier,
 				};
 
 				node.properties[i] = replacement as any;
@@ -44,12 +58,20 @@ function unpack_destructuring(contexts: Context[], node: Node, modifier: (node: 
 				unpack_destructuring(
 					contexts,
 					property.value,
-					node => x`@object_without_properties(${modifier(node)}, [${used_properties}])` as Node
+					node =>
+						x`@object_without_properties(${modifier(
+							node
+						)}, [${used_properties}])` as Node
 				);
 			} else {
 				used_properties.push(x`"${(property.key as Identifier).name}"`);
 
-				unpack_destructuring(contexts, property.value, node => x`${modifier(node)}.${(property.key as Identifier).name}` as Node);
+				unpack_destructuring(
+					contexts,
+					property.value,
+					node =>
+						x`${modifier(node)}.${(property.key as Identifier).name}` as Node
+				);
 			}
 		});
 	}
@@ -91,7 +113,9 @@ export default class EachBlock extends AbstractBlock {
 
 		if (this.index) {
 			// index can only change if this is a keyed each block
-			const dependencies = info.key ? this.expression.dependencies : new Set([]);
+			const dependencies = info.key
+				? this.expression.dependencies
+				: new Set([]);
 			this.scope.add(this.index, dependencies, this);
 		}
 
@@ -105,10 +129,12 @@ export default class EachBlock extends AbstractBlock {
 
 		if (this.has_animation) {
 			if (this.children.length !== 1) {
-				const child = this.children.find(child => !!(child as Element).animation);
+				const child = this.children.find(
+					child => !!(child as Element).animation
+				);
 				component.error((child as Element).animation, {
 					code: `invalid-animation`,
-					message: `An element that use the animate directive must be the sole child of a keyed each block`
+					message: `An element that use the animate directive must be the sole child of a keyed each block`,
 				});
 			}
 		}

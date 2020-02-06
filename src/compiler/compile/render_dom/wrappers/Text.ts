@@ -25,14 +25,21 @@ function should_skip(node: Text) {
 	if (!parent_element) return false;
 
 	if (parent_element.type === 'Head') return true;
-	if (parent_element.type === 'InlineComponent') return parent_element.children.length === 1 && node === parent_element.children[0];
+	if (parent_element.type === 'InlineComponent')
+		return (
+			parent_element.children.length === 1 &&
+			node === parent_element.children[0]
+		);
 
 	// svg namespace exclusions
 	if (/svg$/.test(parent_element.namespace)) {
-		if (node.prev && node.prev.type === "Element" && node.prev.name === "tspan") return false;
+		if (node.prev && node.prev.type === 'Element' && node.prev.name === 'tspan')
+			return false;
 	}
 
-	return parent_element.namespace || elements_without_text.has(parent_element.name);
+	return (
+		parent_element.namespace || elements_without_text.has(parent_element.name)
+	);
 }
 
 export default class TextWrapper extends Wrapper {
@@ -52,11 +59,12 @@ export default class TextWrapper extends Wrapper {
 
 		this.skip = should_skip(this.node);
 		this.data = data;
-		this.var = (this.skip ? null : x`t`) as unknown as Identifier;
+		this.var = ((this.skip ? null : x`t`) as unknown) as Identifier;
 	}
 
 	use_space() {
-		if (this.renderer.component.component_options.preserveWhitespace) return false;
+		if (this.renderer.component.component_options.preserveWhitespace)
+			return false;
 		if (/[\S\u00A0]/.test(this.data)) return false;
 
 		let node = this.parent && this.parent.node;
@@ -77,7 +85,10 @@ export default class TextWrapper extends Wrapper {
 		block.add_element(
 			this.var,
 			use_space ? x`@space()` : x`@text("${this.data}")`,
-			parent_nodes && (use_space ? x`@claim_space(${parent_nodes})` : x`@claim_text(${parent_nodes}, "${this.data}")`),
+			parent_nodes &&
+				(use_space
+					? x`@claim_space(${parent_nodes})`
+					: x`@claim_text(${parent_nodes}, "${this.data}")`),
 			parent_node as Identifier
 		);
 	}

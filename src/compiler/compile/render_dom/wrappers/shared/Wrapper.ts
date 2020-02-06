@@ -28,11 +28,11 @@ export default class Wrapper {
 		// (TODO in dev only?)
 		Object.defineProperties(this, {
 			renderer: {
-				value: renderer
+				value: renderer,
 			},
 			parent: {
-				value: parent
-			}
+				value: parent,
+			},
 		});
 
 		this.can_use_innerhtml = !renderer.options.hydratable;
@@ -51,10 +51,16 @@ export default class Wrapper {
 		if (this.parent) this.parent.not_static_content();
 	}
 
-	get_or_create_anchor(block: Block, parent_node: Identifier, parent_nodes: Identifier) {
+	get_or_create_anchor(
+		block: Block,
+		parent_node: Identifier,
+		parent_nodes: Identifier
+	) {
 		// TODO use this in EachBlock and IfBlock — tricky because
 		// children need to be created first
-		const needs_anchor = this.next ? !this.next.is_dom_node() : !parent_node || !this.parent.is_dom_node();
+		const needs_anchor = this.next
+			? !this.next.is_dom_node()
+			: !parent_node || !this.parent.is_dom_node();
 		const anchor = needs_anchor
 			? block.get_unique_name(`${this.var.name}_anchor`)
 			: (this.next && this.next.var) || { type: 'Identifier', name: 'null' };
@@ -72,7 +78,7 @@ export default class Wrapper {
 	}
 
 	get_update_mount_node(anchor: Identifier): Identifier {
-		return ((this.parent && this.parent.is_dom_node())
+		return (this.parent && this.parent.is_dom_node()
 			? this.parent.var
 			: x`${anchor}.parentNode`) as Identifier;
 	}
